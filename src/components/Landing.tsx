@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMission } from "@/store/mission";
-import { Rocket } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export function Landing() {
   const setStage = useMission((s) => s.setStage);
@@ -8,10 +8,20 @@ export function Landing() {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
+      exit={{ opacity: 0, scale: 1.05, filter: "blur(24px)" }}
       transition={{ duration: 1.2, ease: [0.65, 0, 0.35, 1] }}
       className="pointer-events-none fixed inset-0 z-30 flex flex-col items-center justify-center"
     >
+      {/* Cinematic backdrop — dims the 3D scene so type reads clearly */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,3,0.92) 0%, rgba(0,0,3,0.75) 35%, rgba(0,0,3,0.35) 60%, rgba(0,0,3,0) 85%)",
+          backdropFilter: "blur(2px)",
+        }}
+      />
       {/* Shooting stars */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(6)].map((_, i) => (
