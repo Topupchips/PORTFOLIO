@@ -55,9 +55,13 @@ export function Landing() {
           <span className="pulse-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
         </motion.div>
 
-        <h1 className="font-display text-6xl font-black uppercase tracking-tight text-holo sm:text-8xl md:text-9xl">
+        <h1
+          className="font-display text-6xl font-black uppercase tracking-tight text-holo sm:text-8xl md:text-[10rem] md:leading-[0.95]"
+          style={{ filter: "drop-shadow(0 0 60px rgba(34,211,238,0.25))" }}
+        >
           Ansh Tuli
         </h1>
+        <div className="mt-3 h-px w-24 bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
 
         <motion.p
           initial={{ opacity: 0, letterSpacing: "0.1em" }}
