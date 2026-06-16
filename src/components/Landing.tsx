@@ -77,7 +77,7 @@ export function Landing() {
           onClick={() => setStage("orbit")}
           className="glass-holo border-holo group mt-12 flex items-center gap-3 rounded-full px-8 py-4 font-mono text-xs uppercase tracking-[0.4em] text-cyan-200 transition-all hover:bg-cyan-400/10"
         >
-          <Rocket className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           Enter Mission
         </motion.button>
 
