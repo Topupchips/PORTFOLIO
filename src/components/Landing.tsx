@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMission } from "@/store/mission";
-import { Rocket } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export function Landing() {
   const setStage = useMission((s) => s.setStage);
@@ -8,10 +8,20 @@ export function Landing() {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
+      exit={{ opacity: 0, scale: 1.05, filter: "blur(24px)" }}
       transition={{ duration: 1.2, ease: [0.65, 0, 0.35, 1] }}
       className="pointer-events-none fixed inset-0 z-30 flex flex-col items-center justify-center"
     >
+      {/* Cinematic backdrop — dims the 3D scene so type reads clearly */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,3,0.92) 0%, rgba(0,0,3,0.75) 35%, rgba(0,0,3,0.35) 60%, rgba(0,0,3,0) 85%)",
+          backdropFilter: "blur(2px)",
+        }}
+      />
       {/* Shooting stars */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(6)].map((_, i) => (
@@ -45,9 +55,13 @@ export function Landing() {
           <span className="pulse-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
         </motion.div>
 
-        <h1 className="font-display text-6xl font-black uppercase tracking-tight text-holo sm:text-8xl md:text-9xl">
+        <h1
+          className="font-display text-6xl font-black uppercase tracking-tight text-holo sm:text-8xl md:text-[10rem] md:leading-[0.95]"
+          style={{ filter: "drop-shadow(0 0 60px rgba(34,211,238,0.25))" }}
+        >
           Ansh Tuli
         </h1>
+        <div className="mt-3 h-px w-24 bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
 
         <motion.p
           initial={{ opacity: 0, letterSpacing: "0.1em" }}
@@ -67,7 +81,7 @@ export function Landing() {
           onClick={() => setStage("orbit")}
           className="glass-holo border-holo group mt-12 flex items-center gap-3 rounded-full px-8 py-4 font-mono text-xs uppercase tracking-[0.4em] text-cyan-200 transition-all hover:bg-cyan-400/10"
         >
-          <Rocket className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           Enter Mission
         </motion.button>
 
