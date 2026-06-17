@@ -1,8 +1,8 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Stars, Float, Text, Html } from "@react-three/drei";
+import { Stars, Float, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { useMission, DESTINATIONS, type Destination } from "@/store/mission";
+import { useMission, type Destination } from "@/store/mission";
 
 const PLANETS: {
   id: Destination;
@@ -44,7 +44,6 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
             e.stopPropagation();
             setFocus(p.id);
           }}
-          onPointerOver={() => (document.body.style.cursor = "none")}
           scale={isFocused ? 1.4 : 1}
         >
           <sphereGeometry args={[p.size, 64, 64]} />
@@ -62,7 +61,6 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
             <meshBasicMaterial color="#fbbf24" side={THREE.DoubleSide} transparent opacity={0.5} />
           </mesh>
         )}
-        {/* Glow */}
         <mesh>
           <sphereGeometry args={[p.size * 1.3, 32, 32]} />
           <meshBasicMaterial color={p.color} transparent opacity={0.06} />
@@ -77,37 +75,187 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
   );
 }
 
-function Station() {
-  const ref = useRef<THREE.Group>(null);
+function Sun() {
+  const ref = useRef<THREE.Mesh>(null);
+  const corona = useRef<THREE.Mesh>(null);
+  const setFocus = useMission((s) => s.setFocus);
   useFrame((_, dt) => {
-    if (ref.current) ref.current.rotation.y += dt * 0.1;
+    if (ref.current) ref.current.rotation.y += dt * 0.05;
+    if (corona.current) {
+      const s = 1 + Math.sin(performance.now() * 0.001) * 0.04;
+      corona.current.scale.setScalar(s);
+    }
   });
   return (
-    <group ref={ref} position={[0, 0, 0]}>
-      {/* Flat platform */}
-      <mesh position={[0, -0.4, 0]}>
-        <cylinderGeometry args={[2.2, 2.4, 0.15, 64]} />
-        <meshStandardMaterial color="#0a1929" metalness={0.9} roughness={0.3} emissive="#06b6d4" emissiveIntensity={0.15} />
+    <group position={[0, 0, 0]}>
+      <mesh
+        ref={ref}
+        onClick={(e) => {
+          e.stopPropagation();
+          setFocus(null);
+        }}
+      >
+        <sphereGeometry args={[1.4, 64, 64]} />
+        <meshStandardMaterial
+          color="#fde047"
+          emissive="#f59e0b"
+          emissiveIntensity={1.6}
+          roughness={0.4}
+        />
       </mesh>
-      <mesh position={[0, -0.32, 0]}>
-        <cylinderGeometry args={[2.0, 2.0, 0.02, 64]} />
-        <meshBasicMaterial color="#06b6d4" transparent opacity={0.4} />
+      <mesh ref={corona}>
+        <sphereGeometry args={[1.7, 32, 32]} />
+        <meshBasicMaterial color="#fbbf24" transparent opacity={0.18} />
       </mesh>
-      {/* Spire */}
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[0.05, 0.15, 2.4, 16]} />
-        <meshStandardMaterial color="#1e293b" metalness={1} roughness={0.2} />
+      <mesh>
+        <sphereGeometry args={[2.3, 32, 32]} />
+        <meshBasicMaterial color="#f97316" transparent opacity={0.08} />
       </mesh>
-      <mesh position={[0, 2.1, 0]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshBasicMaterial color="#22d3ee" />
-      </mesh>
-      <pointLight position={[0, 2.1, 0]} intensity={2} color="#22d3ee" distance={6} />
+      <pointLight intensity={3} color="#fbbf24" distance={40} decay={1.4} />
+      <Html center distanceFactor={10} position={[0, 2.1, 0]} style={{ pointerEvents: "none" }}>
+        <div className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.3em] text-amber-200/80">
+          Sol / Mission Control
+        </div>
+      </Html>
     </group>
   );
 }
 
-function Camera() {
+type ShipControls = {
+  forward: boolean;
+  back: boolean;
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
+  boost: boolean;
+};
+
+function useKeyboard() {
+  const keys = useRef<ShipControls>({
+    forward: false, back: false, left: false, right: false, up: false, down: false, boost: false,
+  });
+  useEffect(() => {
+    const map: Record<string, keyof ShipControls> = {
+      KeyW: "forward", ArrowUp: "forward",
+      KeyS: "back", ArrowDown: "back",
+      KeyA: "left", ArrowLeft: "left",
+      KeyD: "right", ArrowRight: "right",
+      Space: "up", ShiftLeft: "down", ShiftRight: "down",
+      ControlLeft: "boost", ControlRight: "boost",
+    };
+    const on = (v: boolean) => (e: KeyboardEvent) => {
+      const k = map[e.code];
+      if (k) { keys.current[k] = v; if (e.code === "Space") e.preventDefault(); }
+    };
+    const d = on(true); const u = on(false);
+    window.addEventListener("keydown", d);
+    window.addEventListener("keyup", u);
+    return () => {
+      window.removeEventListener("keydown", d);
+      window.removeEventListener("keyup", u);
+    };
+  }, []);
+  return keys;
+}
+
+function Ship() {
+  const group = useRef<THREE.Group>(null);
+  const velocity = useRef(new THREE.Vector3());
+  const keys = useKeyboard();
+  const setFocus = useMission((s) => s.setFocus);
+  const focus = useMission((s) => s.focus);
+  const focusRef = useRef(focus);
+  useEffect(() => { focusRef.current = focus; }, [focus]);
+
+  useFrame((_, dt) => {
+    if (!group.current) return;
+    const k = keys.current;
+    // Yaw with left/right, pitch with up/down keys via forward axis
+    const yawSpeed = 1.2 * dt;
+    if (k.left) group.current.rotation.y += yawSpeed;
+    if (k.right) group.current.rotation.y -= yawSpeed;
+    if (k.up) group.current.rotation.x -= yawSpeed * 0.6;
+    if (k.down) group.current.rotation.x += yawSpeed * 0.6;
+    group.current.rotation.x = THREE.MathUtils.clamp(group.current.rotation.x, -0.8, 0.8);
+
+    // Thrust along local -Z (forward)
+    const dir = new THREE.Vector3(0, 0, -1).applyEuler(group.current.rotation);
+    const thrust = (k.forward ? 1 : 0) - (k.back ? 0.6 : 0);
+    const speed = (k.boost ? 18 : 9) * thrust * dt;
+    velocity.current.addScaledVector(dir, speed);
+    velocity.current.multiplyScalar(0.94); // damping
+    group.current.position.addScaledVector(velocity.current, dt * 4);
+
+    // Soft bounds
+    const max = 28;
+    group.current.position.clampScalar(-max, max);
+
+    // Proximity → focus planet
+    let nearest: Destination | null = null;
+    let nearestDist = Infinity;
+    for (const p of PLANETS) {
+      const d = group.current.position.distanceTo(new THREE.Vector3(...p.position));
+      if (d < p.size + 2.2 && d < nearestDist) {
+        nearestDist = d;
+        nearest = p.id;
+      }
+    }
+    if (nearest && focusRef.current !== nearest) setFocus(nearest);
+    else if (!nearest && focusRef.current && focusRef.current !== "home") {
+      // exit zone
+      const focused = PLANETS.find(p => p.id === focusRef.current);
+      if (focused) {
+        const d = group.current.position.distanceTo(new THREE.Vector3(...focused.position));
+        if (d > focused.size + 3.5) setFocus(null);
+      }
+    }
+  });
+
+  return (
+    <group ref={group} position={[0, 0, 6]}>
+      {/* Body */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.18, 0.7, 16]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.25} emissive="#22d3ee" emissiveIntensity={0.25} />
+      </mesh>
+      {/* Wings */}
+      <mesh position={[0, -0.05, 0.1]}>
+        <boxGeometry args={[0.7, 0.04, 0.2]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} emissive="#06b6d4" emissiveIntensity={0.4} />
+      </mesh>
+      {/* Cockpit */}
+      <mesh position={[0, 0.06, -0.05]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.2} transparent opacity={0.8} />
+      </mesh>
+      {/* Thruster glow */}
+      <mesh position={[0, 0, 0.4]}>
+        <sphereGeometry args={[0.12, 16, 16]} />
+        <meshBasicMaterial color="#f0abfc" transparent opacity={0.7} />
+      </mesh>
+      <pointLight position={[0, 0, 0.5]} intensity={1.2} color="#22d3ee" distance={4} />
+    </group>
+  );
+}
+
+function ChaseCamera({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
+  const { camera } = useThree();
+  const tmp = useMemo(() => new THREE.Vector3(), []);
+  const look = useMemo(() => new THREE.Vector3(), []);
+  useFrame((_, dt) => {
+    if (!shipRef.current) return;
+    const back = new THREE.Vector3(0, 0.6, 2.6).applyEuler(shipRef.current.rotation);
+    tmp.copy(shipRef.current.position).add(back);
+    camera.position.lerp(tmp, Math.min(1, dt * 3));
+    const fwd = new THREE.Vector3(0, 0, -3).applyEuler(shipRef.current.rotation);
+    look.copy(shipRef.current.position).add(fwd);
+    camera.lookAt(look);
+  });
+  return null;
+}
+
+function OrbitCamera() {
   const { camera } = useThree();
   const focus = useMission((s) => s.focus);
   const target = useMemo(() => new THREE.Vector3(), []);
@@ -120,9 +268,6 @@ function Camera() {
       if (p) {
         desired.set(p.position[0] * 0.4, p.position[1] + 1, p.position[2] + 4);
         lookAt.set(...p.position);
-      } else if (focus === "home") {
-        desired.set(0, 1.5, 8);
-        lookAt.set(0, 0, 0);
       }
     } else {
       const t = state.clock.elapsedTime * 0.05;
@@ -136,20 +281,100 @@ function Camera() {
   return null;
 }
 
+function PilotControl() {
+  const pilot = useMission((s) => s.pilot);
+  const shipRef = useRef<THREE.Group>(null);
+  // We need the same ref shared with the Ship; render Ship here and pass ref.
+  return pilot ? (
+    <>
+      <ShipWithRef shipRef={shipRef} />
+      <ChaseCamera shipRef={shipRef} />
+    </>
+  ) : (
+    <OrbitCamera />
+  );
+}
+
+// Wrapper so we can hoist the ref
+function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group | null> }) {
+  // Re-implement to use the external ref
+  const velocity = useRef(new THREE.Vector3());
+  const keys = useKeyboard();
+  const setFocus = useMission((s) => s.setFocus);
+  const focus = useMission((s) => s.focus);
+  const focusRef = useRef(focus);
+  useEffect(() => { focusRef.current = focus; }, [focus]);
+
+  useFrame((_, dt) => {
+    const g = shipRef.current;
+    if (!g) return;
+    const k = keys.current;
+    const yawSpeed = 1.3 * dt;
+    if (k.left) g.rotation.y += yawSpeed;
+    if (k.right) g.rotation.y -= yawSpeed;
+    if (k.up) g.rotation.x -= yawSpeed * 0.6;
+    if (k.down) g.rotation.x += yawSpeed * 0.6;
+    g.rotation.x = THREE.MathUtils.clamp(g.rotation.x, -0.7, 0.7);
+
+    const dir = new THREE.Vector3(0, 0, -1).applyEuler(g.rotation);
+    const thrust = (k.forward ? 1 : 0) - (k.back ? 0.6 : 0);
+    const accel = (k.boost ? 22 : 11) * thrust * dt;
+    velocity.current.addScaledVector(dir, accel);
+    velocity.current.multiplyScalar(0.95);
+    g.position.addScaledVector(velocity.current, dt * 3);
+    g.position.clampScalar(-30, 30);
+
+    let nearest: Destination | null = null;
+    let nearestDist = Infinity;
+    for (const p of PLANETS) {
+      const d = g.position.distanceTo(new THREE.Vector3(...p.position));
+      if (d < p.size + 2.4 && d < nearestDist) { nearestDist = d; nearest = p.id; }
+    }
+    if (nearest && focusRef.current !== nearest) setFocus(nearest);
+    else if (!nearest && focusRef.current) {
+      const focused = PLANETS.find(p => p.id === focusRef.current);
+      if (focused) {
+        const d = g.position.distanceTo(new THREE.Vector3(...focused.position));
+        if (d > focused.size + 4) setFocus(null);
+      }
+    }
+  });
+
+  return (
+    <group ref={shipRef} position={[0, 0, 6]}>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.18, 0.7, 16]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.25} emissive="#22d3ee" emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, -0.05, 0.1]}>
+        <boxGeometry args={[0.7, 0.04, 0.2]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} emissive="#06b6d4" emissiveIntensity={0.5} />
+      </mesh>
+      <mesh position={[0, 0.06, -0.05]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} transparent opacity={0.85} />
+      </mesh>
+      <mesh position={[0, 0, 0.4]}>
+        <sphereGeometry args={[0.14, 16, 16]} />
+        <meshBasicMaterial color="#f0abfc" transparent opacity={0.75} />
+      </mesh>
+      <pointLight position={[0, 0, 0.5]} intensity={1.4} color="#22d3ee" distance={5} />
+    </group>
+  );
+}
+
 export function SpaceScene() {
   return (
     <>
       <color attach="background" args={["#000003"]} />
-      <fog attach="fog" args={["#000003", 12, 35]} />
-      <ambientLight intensity={0.15} />
-      <pointLight position={[10, 10, 10]} intensity={1} color="#a78bfa" />
-      <pointLight position={[-10, -5, -5]} intensity={0.6} color="#22d3ee" />
-      <directionalLight position={[5, 5, 5]} intensity={0.3} />
+      <fog attach="fog" args={["#000003", 14, 45]} />
+      <ambientLight intensity={0.18} />
+      <pointLight position={[10, 10, 10]} intensity={0.8} color="#a78bfa" />
+      <pointLight position={[-10, -5, -5]} intensity={0.5} color="#22d3ee" />
 
       <Stars radius={120} depth={60} count={14000} factor={4} saturation={0.4} fade speed={0.5} />
       <Stars radius={50} depth={30} count={3000} factor={2} saturation={0} fade speed={1} />
 
-      {/* Nebula clouds */}
       <mesh position={[-15, 5, -25]}>
         <sphereGeometry args={[10, 32, 32]} />
         <meshBasicMaterial color="#7c3aed" transparent opacity={0.04} />
@@ -159,12 +384,12 @@ export function SpaceScene() {
         <meshBasicMaterial color="#0891b2" transparent opacity={0.05} />
       </mesh>
 
-      <Station />
+      <Sun />
       {PLANETS.map((p) => (
         <Planet key={p.id} p={p} />
       ))}
 
-      <Camera />
+      <PilotControl />
     </>
   );
 }
