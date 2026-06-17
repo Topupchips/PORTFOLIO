@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMission, DESTINATIONS, type Destination } from "@/store/mission";
 import {
-  Home, User, Rocket, Briefcase, Sparkles, Radio, ArrowLeft,
+  Home, User, Rocket, Briefcase, Sparkles, Radio, ArrowLeft, Plane,
 } from "lucide-react";
 
 const ICONS: Record<Destination, React.ComponentType<{ className?: string }>> = {
@@ -14,7 +14,7 @@ const ICONS: Record<Destination, React.ComponentType<{ className?: string }>> = 
 };
 
 export function HUD() {
-  const { focus, setFocus, stage } = useMission();
+  const { focus, setFocus, stage, pilot, togglePilot } = useMission();
 
   if (stage === "landing") return null;
 
@@ -73,9 +73,38 @@ export function HUD() {
         </ul>
       </motion.nav>
 
+      {/* Pilot ship toggle */}
+      <motion.button
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        onClick={togglePilot}
+        className={`glass-holo border-holo fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.3em] transition-colors ${
+          pilot ? "bg-cyan-400/20 text-cyan-200" : "text-cyan-300 hover:bg-cyan-400/10"
+        }`}
+        aria-pressed={pilot}
+      >
+        <Plane className="h-3 w-3" />
+        {pilot ? "Exit Cockpit" : "Pilot Ship"}
+      </motion.button>
+
+      {/* Pilot controls hint */}
+      <AnimatePresence>
+        {pilot && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            className="glass-holo fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full px-5 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-200/90"
+          >
+            W/S thrust · A/D yaw · ↑/↓ pitch · Ctrl boost · fly near a planet to dock
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Return to orbit */}
       <AnimatePresence>
-        {focus && (
+        {focus && !pilot && (
           <motion.button
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

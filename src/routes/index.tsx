@@ -60,8 +60,9 @@ function Mission() {
   }, [setFocus]);
 
   // Scroll to advance through destinations
+  const pilot = useMission((s) => s.pilot);
   useEffect(() => {
-    if (stage !== "orbit") return;
+    if (stage !== "orbit" || pilot) return;
     let acc = 0;
     let cooldown = false;
     const order = DESTINATIONS.map((d) => d.id);
@@ -80,7 +81,7 @@ function Mission() {
     };
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
-  }, [stage, focus, setFocus]);
+  }, [stage, focus, setFocus, pilot]);
 
   return (
     <main className="grain vignette relative h-screen w-screen overflow-hidden bg-black">
