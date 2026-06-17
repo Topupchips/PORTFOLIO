@@ -1,7 +1,19 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMission, type Destination } from "@/store/mission";
+import { getPlanetFlavor } from "@/lib/content";
+import { useGame } from "@/store/game";
 import {
-  GraduationCap, Trophy, Briefcase, Github, Linkedin, Mail, Copy, Check, ExternalLink, Download, Send,
+  GraduationCap,
+  Trophy,
+  Briefcase,
+  Github,
+  Linkedin,
+  Mail,
+  Copy,
+  Check,
+  ExternalLink,
+  Download,
+  Send,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -15,6 +27,10 @@ const PANELS: Record<Exclude<Destination, "home">, { title: string; subtitle: st
 
 export function PanelLayer() {
   const focus = useMission((s) => s.focus);
+  const totalScore = useGame((s) => s.totalScore);
+
+  const flavor =
+    focus && focus !== "home" && focus !== "contact" ? getPlanetFlavor(focus, totalScore) : null;
 
   return (
     <AnimatePresence mode="wait">
@@ -38,7 +54,18 @@ export function PanelLayer() {
                 <span className="pulse-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
                 {PANELS[focus].title}
               </div>
-              <div className="text-white/40">{PANELS[focus].subtitle}</div>
+              <div className="text-right">
+                <div className="text-white/40">{PANELS[focus].subtitle}</div>
+                {flavor && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-1 max-w-xs text-[9px] normal-case tracking-normal text-amber-300/70"
+                  >
+                    🔓 {flavor}
+                  </motion.div>
+                )}
+              </div>
             </header>
 
             <div className="overflow-y-auto p-6 md:p-10">
@@ -75,15 +102,18 @@ function AboutPanel() {
         <h2 className="font-display text-4xl font-bold text-holo md:text-5xl">Operator Profile</h2>
         <p className="text-white/70 leading-relaxed">
           I got pulled into tech the way most kids my age did — watching Iron Man build something
-          impossible in a cave. Now I'm a CS student at UNB, founder of <span className="text-cyan-300">Pyra AI</span>,
-          and co-founder of <span className="text-cyan-300">Hack Atlantic</span>. I work at the
-          intersection of AI, startups, and engineering — shipping things that feel a little like magic.
+          impossible in a cave. Now I'm a CS student at UNB, founder of{" "}
+          <span className="text-cyan-300">Pyra AI</span>, and co-founder of{" "}
+          <span className="text-cyan-300">Hack Atlantic</span>. I work at the intersection of AI,
+          startups, and engineering — shipping things that feel a little like magic.
         </p>
         <div className="flex items-start gap-3 rounded-lg border border-cyan-400/20 p-4">
           <GraduationCap className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
           <div>
             <div className="font-display text-sm">University of New Brunswick</div>
-            <div className="text-xs text-white/50">Bachelor of Computer Science · Math Minor · GPA 4.1/4.3</div>
+            <div className="text-xs text-white/50">
+              Bachelor of Computer Science · Math Minor · GPA 4.1/4.3
+            </div>
           </div>
         </div>
         <div className="rounded-lg border border-cyan-400/20 p-4">
@@ -92,7 +122,10 @@ function AboutPanel() {
           </div>
           <ul className="space-y-2 text-sm text-white/70">
             {achievements.map((a) => (
-              <li key={a} className="flex gap-2"><span className="text-cyan-400">▸</span>{a}</li>
+              <li key={a} className="flex gap-2">
+                <span className="text-cyan-400">▸</span>
+                {a}
+              </li>
             ))}
           </ul>
         </div>
@@ -101,7 +134,9 @@ function AboutPanel() {
         {stats.map((s) => (
           <div key={s.l} className="rounded-lg border border-cyan-400/20 bg-black/30 p-5">
             <div className="font-display text-3xl font-bold text-holo">{s.v}</div>
-            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">{s.l}</div>
+            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
+              {s.l}
+            </div>
           </div>
         ))}
       </div>
@@ -143,7 +178,9 @@ const PROJECTS = [
 function ProjectsPanel() {
   return (
     <div>
-      <h2 className="mb-6 font-display text-4xl font-bold text-holo md:text-5xl">Active Payloads</h2>
+      <h2 className="mb-6 font-display text-4xl font-bold text-holo md:text-5xl">
+        Active Payloads
+      </h2>
       <div className="grid gap-4 md:grid-cols-2">
         {PROJECTS.map((p, i) => (
           <motion.a
@@ -158,14 +195,19 @@ function ProjectsPanel() {
             className="group relative overflow-hidden rounded-xl border border-cyan-400/20 bg-black/40 p-5 transition-colors hover:border-cyan-400/60"
           >
             <div className="mb-2 flex items-center justify-between">
-              <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-300">{p.tag}</div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-300">
+                {p.tag}
+              </div>
               <ExternalLink className="h-3.5 w-3.5 text-white/30 transition-colors group-hover:text-cyan-300" />
             </div>
             <h3 className="font-display text-2xl font-bold text-white">{p.name}</h3>
             <p className="mt-2 text-sm text-white/60">{p.desc}</p>
             <div className="mt-4 flex flex-wrap gap-1.5">
               {p.stack.map((s) => (
-                <span key={s} className="rounded-full border border-cyan-400/20 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200/80">
+                <span
+                  key={s}
+                  className="rounded-full border border-cyan-400/20 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200/80"
+                >
                   {s}
                 </span>
               ))}
@@ -178,11 +220,36 @@ function ProjectsPanel() {
 }
 
 const EXPERIENCE = [
-  { role: "Co-Founder", org: "Hack Atlantic", period: "May 2026 — Present", desc: "Building Atlantic Canada's flagship student hackathon." },
-  { role: "Associate Software Engineer", org: "Introhive", period: "Jan 2026 — Present", desc: "Co-op engineer shipping production features across the Introhive platform." },
-  { role: "Founder", org: "Pyra AI", period: "Jan 2026 — Present", desc: "Selected for Base44 Accelerator Cohort 1 (1 of 33 globally)." },
-  { role: "Software Developer", org: "Canadian Institute for Cybersecurity", period: "Sep — Dec 2025", desc: "Research engineering on cybersecurity tooling at UNB." },
-  { role: "Software Developer Co-op", org: "Irving Oil", period: "Jan — Apr 2025", desc: "Internal tools, automation, and data pipelines for a Fortune 500 energy company." },
+  {
+    role: "Co-Founder",
+    org: "Hack Atlantic",
+    period: "May 2026 — Present",
+    desc: "Building Atlantic Canada's flagship student hackathon.",
+  },
+  {
+    role: "Associate Software Engineer",
+    org: "Introhive",
+    period: "Jan 2026 — Present",
+    desc: "Co-op engineer shipping production features across the Introhive platform.",
+  },
+  {
+    role: "Founder",
+    org: "Pyra AI",
+    period: "Jan 2026 — Present",
+    desc: "Selected for Base44 Accelerator Cohort 1 (1 of 33 globally).",
+  },
+  {
+    role: "Software Developer",
+    org: "Canadian Institute for Cybersecurity",
+    period: "Sep — Dec 2025",
+    desc: "Research engineering on cybersecurity tooling at UNB.",
+  },
+  {
+    role: "Software Developer Co-op",
+    org: "Irving Oil",
+    period: "Jan — Apr 2025",
+    desc: "Internal tools, automation, and data pipelines for a Fortune 500 energy company.",
+  },
 ];
 
 function ExperiencePanel() {
@@ -206,7 +273,9 @@ function ExperiencePanel() {
                 <div className="font-display text-lg font-semibold text-white">
                   {e.role} · <span className="text-cyan-300">{e.org}</span>
                 </div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">{e.period}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  {e.period}
+                </div>
               </div>
               <p className="mt-1.5 text-sm text-white/60">{e.desc}</p>
             </div>
@@ -218,27 +287,53 @@ function ExperiencePanel() {
 }
 
 const SKILLS = {
-  AI: [["PyTorch", 88], ["LLMs / Agents", 92], ["FastAPI", 85], ["Computer Vision", 75]],
-  "Full Stack": [["React / Next.js", 95], ["TypeScript", 92], ["Node.js", 85], ["Tailwind", 95]],
-  Cloud: [["AWS", 78], ["Vercel", 90], ["Docker", 82], ["Cloudflare", 80]],
-  Data: [["Postgres", 88], ["Supabase", 90], ["Python", 92], ["SQL", 90]],
+  AI: [
+    ["PyTorch", 88],
+    ["LLMs / Agents", 92],
+    ["FastAPI", 85],
+    ["Computer Vision", 75],
+  ],
+  "Full Stack": [
+    ["React / Next.js", 95],
+    ["TypeScript", 92],
+    ["Node.js", 85],
+    ["Tailwind", 95],
+  ],
+  Cloud: [
+    ["AWS", 78],
+    ["Vercel", 90],
+    ["Docker", 82],
+    ["Cloudflare", 80],
+  ],
+  Data: [
+    ["Postgres", 88],
+    ["Supabase", 90],
+    ["Python", 92],
+    ["SQL", 90],
+  ],
 } as const;
 
 function SkillsPanel() {
   return (
     <div>
-      <h2 className="mb-2 font-display text-4xl font-bold text-holo md:text-5xl">Skill Constellation</h2>
+      <h2 className="mb-2 font-display text-4xl font-bold text-holo md:text-5xl">
+        Skill Constellation
+      </h2>
       <p className="mb-6 text-sm text-white/50">Hover a star to read its signal strength.</p>
       <div className="grid gap-6 md:grid-cols-2">
         {Object.entries(SKILLS).map(([cat, items]) => (
           <div key={cat} className="rounded-xl border border-cyan-400/20 bg-black/30 p-5">
-            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300">{cat}</div>
+            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300">
+              {cat}
+            </div>
             <div className="space-y-3">
               {items.map(([name, val]) => (
                 <div key={name} className="group">
                   <div className="mb-1 flex justify-between text-xs">
                     <span className="text-white/80">{name}</span>
-                    <span className="font-mono text-cyan-300/70 opacity-0 transition-opacity group-hover:opacity-100">{val}%</span>
+                    <span className="font-mono text-cyan-300/70 opacity-0 transition-opacity group-hover:opacity-100">
+                      {val}%
+                    </span>
                   </div>
                   <div className="h-1 overflow-hidden rounded-full bg-white/5">
                     <motion.div
@@ -283,20 +378,44 @@ function ContactPanel() {
     <div className="grid gap-8 md:grid-cols-2">
       <div>
         <h2 className="mb-2 font-display text-4xl font-bold text-holo md:text-5xl">Open Comms</h2>
-        <p className="mb-6 text-sm text-white/60">Transmission channel active. Send a signal — I read everything.</p>
+        <p className="mb-6 text-sm text-white/60">
+          Transmission channel active. Send a signal — I read everything.
+        </p>
 
-        <button onClick={copy} className="glass-holo mb-3 flex w-full items-center justify-between rounded-lg px-4 py-3 text-left transition-colors hover:bg-cyan-400/10">
+        <button
+          onClick={copy}
+          className="glass-holo mb-3 flex w-full items-center justify-between rounded-lg px-4 py-3 text-left transition-colors hover:bg-cyan-400/10"
+        >
           <div className="flex items-center gap-3">
             <Mail className="h-4 w-4 text-cyan-300" />
             <span className="font-mono text-sm">{email}</span>
           </div>
-          {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/40" />}
+          {copied ? (
+            <Check className="h-4 w-4 text-green-400" />
+          ) : (
+            <Copy className="h-4 w-4 text-white/40" />
+          )}
         </button>
 
         <div className="space-y-2">
-          <SocialLink href="https://linkedin.com/in/ansh-tuli-651a60221" icon={Linkedin} label="LinkedIn" handle="ansh-tuli" />
-          <SocialLink href="https://github.com/Topupchips" icon={Github} label="GitHub" handle="Topupchips" />
-          <SocialLink href="https://hackatlantic.ca" icon={ExternalLink} label="Hack Atlantic" handle="hackatlantic.ca" />
+          <SocialLink
+            href="https://linkedin.com/in/ansh-tuli-651a60221"
+            icon={Linkedin}
+            label="LinkedIn"
+            handle="ansh-tuli"
+          />
+          <SocialLink
+            href="https://github.com/Topupchips"
+            icon={Github}
+            label="GitHub"
+            handle="Topupchips"
+          />
+          <SocialLink
+            href="https://hackatlantic.ca"
+            icon={ExternalLink}
+            label="Hack Atlantic"
+            handle="hackatlantic.ca"
+          />
         </div>
 
         <a
@@ -311,7 +430,9 @@ function ContactPanel() {
         <Field name="name" label="Callsign" placeholder="Your name" />
         <Field name="email" label="Channel" type="email" placeholder="you@domain.com" />
         <div>
-          <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">Message</label>
+          <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">
+            Message
+          </label>
           <textarea
             name="message"
             required
@@ -324,17 +445,37 @@ function ContactPanel() {
           type="submit"
           className="border-holo flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-400/10 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-200 transition-colors hover:bg-cyan-400/20"
         >
-          {sent ? <><Check className="h-3.5 w-3.5" /> Transmission Sent</> : <><Send className="h-3.5 w-3.5" /> Transmit</>}
+          {sent ? (
+            <>
+              <Check className="h-3.5 w-3.5" /> Transmission Sent
+            </>
+          ) : (
+            <>
+              <Send className="h-3.5 w-3.5" /> Transmit
+            </>
+          )}
         </button>
       </form>
     </div>
   );
 }
 
-function Field({ name, label, type = "text", placeholder }: { name: string; label: string; type?: string; placeholder?: string }) {
+function Field({
+  name,
+  label,
+  type = "text",
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+}) {
   return (
     <div>
-      <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">{label}</label>
+      <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">
+        {label}
+      </label>
       <input
         name={name}
         type={type}
@@ -346,9 +487,24 @@ function Field({ name, label, type = "text", placeholder }: { name: string; labe
   );
 }
 
-function SocialLink({ href, icon: Icon, label, handle }: { href: string; icon: React.ComponentType<{ className?: string }>; label: string; handle: string }) {
+function SocialLink({
+  href,
+  icon: Icon,
+  label,
+  handle,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  handle: string;
+}) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="glass-holo flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-cyan-400/10">
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="glass-holo flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-cyan-400/10"
+    >
       <div className="flex items-center gap-3">
         <Icon className="h-4 w-4 text-cyan-300" />
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">{label}</span>

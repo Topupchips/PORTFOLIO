@@ -13,17 +13,53 @@ const PLANETS: {
   ring?: boolean;
   label: string;
 }[] = [
-  { id: "about", position: [-8, 1.5, -2], size: 1.1, color: "#3b82f6", emissive: "#1e3a8a", label: "About / Earth" },
-  { id: "projects", position: [7, -1, -3], size: 0.9, color: "#dc2626", emissive: "#7f1d1d", label: "Projects / Mars" },
-  { id: "experience", position: [-6, -2.5, -10], size: 1.6, color: "#eab308", emissive: "#713f12", ring: true, label: "Experience / Saturn" },
-  { id: "skills", position: [9, 3, -8], size: 0.55, color: "#cbd5e1", emissive: "#475569", label: "Skills / Moon" },
-  { id: "contact", position: [0, 4.5, -12], size: 0.7, color: "#06b6d4", emissive: "#0e7490", label: "Contact / Comms" },
+  {
+    id: "about",
+    position: [-8, 1.5, -2],
+    size: 1.1,
+    color: "#3b82f6",
+    emissive: "#1e3a8a",
+    label: "About / Earth",
+  },
+  {
+    id: "projects",
+    position: [7, -1, -3],
+    size: 0.9,
+    color: "#dc2626",
+    emissive: "#7f1d1d",
+    label: "Projects / Mars",
+  },
+  {
+    id: "experience",
+    position: [-6, -2.5, -10],
+    size: 1.6,
+    color: "#eab308",
+    emissive: "#713f12",
+    ring: true,
+    label: "Experience / Saturn",
+  },
+  {
+    id: "skills",
+    position: [9, 3, -8],
+    size: 0.55,
+    color: "#cbd5e1",
+    emissive: "#475569",
+    label: "Skills / Moon",
+  },
+  {
+    id: "contact",
+    position: [0, 4.5, -12],
+    size: 0.7,
+    color: "#06b6d4",
+    emissive: "#0e7490",
+    label: "Contact / Comms",
+  },
 ];
 
 function Planet({ p }: { p: (typeof PLANETS)[number] }) {
   const ref = useRef<THREE.Mesh>(null);
   const focus = useMission((s) => s.focus);
-  const setFocus = useMission((s) => s.setFocus);
+  const navigateTo = useMission((s) => s.navigateTo);
   const isFocused = focus === p.id;
 
   useFrame((_, dt) => {
@@ -42,7 +78,7 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
           ref={ref}
           onClick={(e) => {
             e.stopPropagation();
-            setFocus(p.id);
+            navigateTo(p.id);
           }}
           scale={isFocused ? 1.4 : 1}
         >
@@ -65,7 +101,12 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
           <sphereGeometry args={[p.size * 1.3, 32, 32]} />
           <meshBasicMaterial color={p.color} transparent opacity={0.06} />
         </mesh>
-        <Html center distanceFactor={10} position={[0, p.size + 0.6, 0]} style={{ pointerEvents: "none" }}>
+        <Html
+          center
+          distanceFactor={10}
+          position={[0, p.size + 0.6, 0]}
+          style={{ pointerEvents: "none" }}
+        >
           <div className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">
             {p.label}
           </div>
@@ -78,7 +119,7 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
 function Sun() {
   const ref = useRef<THREE.Mesh>(null);
   const corona = useRef<THREE.Mesh>(null);
-  const setFocus = useMission((s) => s.setFocus);
+  const navigateTo = useMission((s) => s.navigateTo);
   useFrame((_, dt) => {
     if (ref.current) ref.current.rotation.y += dt * 0.05;
     if (corona.current) {
@@ -92,7 +133,7 @@ function Sun() {
         ref={ref}
         onClick={(e) => {
           e.stopPropagation();
-          setFocus(null);
+          navigateTo(null);
         }}
       >
         <sphereGeometry args={[1.4, 64, 64]} />
@@ -133,22 +174,39 @@ type ShipControls = {
 
 function useKeyboard() {
   const keys = useRef<ShipControls>({
-    forward: false, back: false, left: false, right: false, up: false, down: false, boost: false,
+    forward: false,
+    back: false,
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    boost: false,
   });
   useEffect(() => {
     const map: Record<string, keyof ShipControls> = {
-      KeyW: "forward", ArrowUp: "forward",
-      KeyS: "back", ArrowDown: "back",
-      KeyA: "left", ArrowLeft: "left",
-      KeyD: "right", ArrowRight: "right",
-      Space: "up", ShiftLeft: "down", ShiftRight: "down",
-      ControlLeft: "boost", ControlRight: "boost",
+      KeyW: "forward",
+      ArrowUp: "forward",
+      KeyS: "back",
+      ArrowDown: "back",
+      KeyA: "left",
+      ArrowLeft: "left",
+      KeyD: "right",
+      ArrowRight: "right",
+      Space: "up",
+      ShiftLeft: "down",
+      ShiftRight: "down",
+      ControlLeft: "boost",
+      ControlRight: "boost",
     };
     const on = (v: boolean) => (e: KeyboardEvent) => {
       const k = map[e.code];
-      if (k) { keys.current[k] = v; if (e.code === "Space") e.preventDefault(); }
+      if (k) {
+        keys.current[k] = v;
+        if (e.code === "Space") e.preventDefault();
+      }
     };
-    const d = on(true); const u = on(false);
+    const d = on(true);
+    const u = on(false);
     window.addEventListener("keydown", d);
     window.addEventListener("keyup", u);
     return () => {
@@ -177,27 +235,70 @@ function ChaseCamera({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
   return null;
 }
 
+function getCameraTargets(focus: Destination | null, elapsed: number) {
+  const desired = new THREE.Vector3();
+  const lookAt = new THREE.Vector3();
+
+  if (focus) {
+    const p = PLANETS.find((x) => x.id === focus);
+    if (p) {
+      desired.set(p.position[0] * 0.35, p.position[1] + 1.2, p.position[2] + 3.8);
+      lookAt.set(...p.position);
+      return { desired, lookAt };
+    }
+  }
+
+  const t = elapsed * 0.05;
+  desired.set(Math.sin(t) * 2, 1.5 + Math.cos(t) * 0.3, 9 + Math.cos(t) * 1);
+  lookAt.set(0, 0, 0);
+  return { desired, lookAt };
+}
+
 function OrbitCamera() {
   const { camera } = useThree();
   const focus = useMission((s) => s.focus);
+  const cameraTransitioning = useMission((s) => s.cameraTransitioning);
   const target = useMemo(() => new THREE.Vector3(), []);
   const desired = useMemo(() => new THREE.Vector3(0, 1.5, 8), []);
   const lookAt = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  const transitionRef = useRef({ t: 0, fromFocus: null as Destination | null });
+  const overview = useMemo(() => new THREE.Vector3(0, 3.5, 14), []);
+
+  useEffect(() => {
+    transitionRef.current = { t: 0, fromFocus: focus };
+  }, [focus]);
 
   useFrame((state, dt) => {
-    if (focus) {
-      const p = PLANETS.find((x) => x.id === focus);
-      if (p) {
-        desired.set(p.position[0] * 0.4, p.position[1] + 1, p.position[2] + 4);
-        lookAt.set(...p.position);
+    const tr = transitionRef.current;
+    if (cameraTransitioning) {
+      tr.t = Math.min(1, tr.t + dt / 2.8);
+    } else {
+      tr.t = 0;
+    }
+
+    const { desired: endPos, lookAt: endLook } = getCameraTargets(focus, state.clock.elapsedTime);
+
+    if (cameraTransitioning && tr.t < 1) {
+      // Cinematic arc: pull back to overview at midpoint, then approach target
+      const ease = 1 - Math.pow(1 - tr.t, 3);
+      const mid = ease < 0.5 ? ease * 2 : 1;
+      const late = ease < 0.5 ? 0 : (ease - 0.5) * 2;
+
+      if (ease < 0.5) {
+        desired.lerpVectors(camera.position, overview, mid * 0.08);
+        lookAt.lerp(new THREE.Vector3(0, 0, 0), mid * 0.06);
+      } else {
+        desired.lerpVectors(overview, endPos, late * 0.1);
+        lookAt.lerp(endLook, late * 0.12);
       }
     } else {
-      const t = state.clock.elapsedTime * 0.05;
-      desired.set(Math.sin(t) * 2, 1.5 + Math.cos(t) * 0.3, 9 + Math.cos(t) * 1);
-      lookAt.set(0, 0, 0);
+      desired.copy(endPos);
+      lookAt.copy(endLook);
     }
-    camera.position.lerp(desired, Math.min(1, dt * 1.5));
-    target.lerp(lookAt, Math.min(1, dt * 2));
+
+    const speed = cameraTransitioning ? 2.2 : 1.5;
+    camera.position.lerp(desired, Math.min(1, dt * speed));
+    target.lerp(lookAt, Math.min(1, dt * (cameraTransitioning ? 2.5 : 2)));
     camera.lookAt(target);
   });
   return null;
@@ -225,7 +326,9 @@ function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
   const setFocus = useMission((s) => s.setFocus);
   const focus = useMission((s) => s.focus);
   const focusRef = useRef(focus);
-  useEffect(() => { focusRef.current = focus; }, [focus]);
+  useEffect(() => {
+    focusRef.current = focus;
+  }, [focus]);
 
   useFrame((_, dt) => {
     const g = shipRef.current;
@@ -250,11 +353,14 @@ function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
     let nearestDist = Infinity;
     for (const p of PLANETS) {
       const d = g.position.distanceTo(new THREE.Vector3(...p.position));
-      if (d < p.size + 2.4 && d < nearestDist) { nearestDist = d; nearest = p.id; }
+      if (d < p.size + 2.4 && d < nearestDist) {
+        nearestDist = d;
+        nearest = p.id;
+      }
     }
     if (nearest && focusRef.current !== nearest) setFocus(nearest);
     else if (!nearest && focusRef.current) {
-      const focused = PLANETS.find(p => p.id === focusRef.current);
+      const focused = PLANETS.find((p) => p.id === focusRef.current);
       if (focused) {
         const d = g.position.distanceTo(new THREE.Vector3(...focused.position));
         if (d > focused.size + 4) setFocus(null);
@@ -267,17 +373,35 @@ function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
       {/* Hull — Iron Man hot-rod red */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <coneGeometry args={[0.18, 0.7, 16]} />
-        <meshStandardMaterial color="#b91c1c" metalness={0.95} roughness={0.2} emissive="#dc2626" emissiveIntensity={0.35} />
+        <meshStandardMaterial
+          color="#b91c1c"
+          metalness={0.95}
+          roughness={0.2}
+          emissive="#dc2626"
+          emissiveIntensity={0.35}
+        />
       </mesh>
       {/* Gold wing accents */}
       <mesh position={[0, -0.05, 0.1]}>
         <boxGeometry args={[0.7, 0.04, 0.2]} />
-        <meshStandardMaterial color="#facc15" metalness={1} roughness={0.25} emissive="#f59e0b" emissiveIntensity={0.5} />
+        <meshStandardMaterial
+          color="#facc15"
+          metalness={1}
+          roughness={0.25}
+          emissive="#f59e0b"
+          emissiveIntensity={0.5}
+        />
       </mesh>
       {/* Arc-reactor cockpit */}
       <mesh position={[0, 0.06, -0.05]}>
         <sphereGeometry args={[0.11, 16, 16]} />
-        <meshStandardMaterial color="#a5f3fc" emissive="#22d3ee" emissiveIntensity={1.8} transparent opacity={0.9} />
+        <meshStandardMaterial
+          color="#a5f3fc"
+          emissive="#22d3ee"
+          emissiveIntensity={1.8}
+          transparent
+          opacity={0.9}
+        />
       </mesh>
       {/* Repulsor thrust */}
       <mesh position={[0, 0, 0.42]}>

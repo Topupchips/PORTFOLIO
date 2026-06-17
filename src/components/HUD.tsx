@@ -1,8 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMission, DESTINATIONS, type Destination } from "@/store/mission";
-import {
-  Home, User, Rocket, Briefcase, Sparkles, Radio, ArrowLeft, Plane,
-} from "lucide-react";
+import { Home, User, Rocket, Briefcase, Sparkles, Radio, ArrowLeft, Plane } from "lucide-react";
+import { ArcReactorMenu } from "@/components/hud/ArcReactorMenu";
+import { JarvisWidgets } from "@/components/hud/JarvisWidgets";
+import { MissionControlHome } from "@/components/hud/MissionControlHome";
+import { NightSkyEngravings } from "@/components/hud/NightSkyEngravings";
+import { TransitionNarration } from "@/components/hud/TransitionNarration";
 
 const ICONS: Record<Destination, React.ComponentType<{ className?: string }>> = {
   home: Home,
@@ -14,21 +17,26 @@ const ICONS: Record<Destination, React.ComponentType<{ className?: string }>> = 
 };
 
 export function HUD() {
-  const { focus, setFocus, stage, pilot, togglePilot } = useMission();
+  const { focus, navigateTo, stage, pilot, togglePilot } = useMission();
 
   if (stage === "landing") return null;
 
   return (
     <>
+      <ArcReactorMenu />
+      <JarvisWidgets />
+      <MissionControlHome />
+      <NightSkyEngravings />
+      <TransitionNarration />
+
       {/* Top status bar */}
       <motion.div
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="pointer-events-none fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/70"
+        className="pointer-events-none fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 pl-20 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/70"
       >
         <div className="flex items-center gap-3">
-          <span className="arc-reactor inline-block h-2.5 w-2.5 rounded-full bg-cyan-300" />
           <span className="text-cyan-300/80">J.A.R.V.I.S.</span>
           <span className="text-amber-300/60">// MK-VII · ANSH.TULI</span>
         </div>
@@ -54,7 +62,7 @@ export function HUD() {
             return (
               <li key={d.id}>
                 <button
-                  onClick={() => setFocus(d.id === "home" ? null : d.id)}
+                  onClick={() => navigateTo(d.id === "home" ? null : d.id)}
                   className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
                     active ? "bg-cyan-400/15 text-cyan-300" : "text-white/50 hover:text-cyan-300"
                   }`}
@@ -110,7 +118,7 @@ export function HUD() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 30, opacity: 0 }}
-            onClick={() => setFocus(null)}
+            onClick={() => navigateTo(null)}
             className="glass-holo border-holo fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300 hover:bg-cyan-400/10"
           >
             <ArrowLeft className="mr-2 inline h-3 w-3" />
