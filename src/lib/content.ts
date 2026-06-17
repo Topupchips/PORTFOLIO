@@ -41,7 +41,7 @@ export const PROJECTS = [
     tag: "Base44 Cohort 1",
     desc: "AI venture selected as 1 of 33 startups for Base44 Accelerator. Building agents that ship work.",
     stack: ["LLMs", "Next.js", "Postgres", "Agents"],
-    url: "#",
+    url: "https://pyraai.tech",
   },
   {
     name: "Hack Atlantic",
