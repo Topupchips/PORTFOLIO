@@ -86,7 +86,7 @@ export function HUD() {
         aria-pressed={pilot}
       >
         <Plane className="h-3 w-3" />
-        {pilot ? "Exit Cockpit" : "Pilot Ship"}
+        {pilot ? "Exit Suit" : "Suit Up · Pilot"}
       </motion.button>
 
       {/* Pilot controls hint */}
