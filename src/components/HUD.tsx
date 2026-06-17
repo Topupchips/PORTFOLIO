@@ -28,11 +28,12 @@ export function HUD() {
         className="pointer-events-none fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/70"
       >
         <div className="flex items-center gap-3">
-          <span className="pulse-ring inline-block h-2 w-2 rounded-full bg-cyan-400" />
-          MISSION 001 · ANSH.TULI
+          <span className="arc-reactor inline-block h-2.5 w-2.5 rounded-full bg-cyan-300" />
+          <span className="text-cyan-300/80">J.A.R.V.I.S.</span>
+          <span className="text-amber-300/60">// MK-VII · ANSH.TULI</span>
         </div>
         <div className="hidden md:block">SECTOR / {(focus ?? "orbit").toUpperCase()}</div>
-        <div>LAT 45.96°N · LON 66.64°W</div>
+        <div className="text-amber-300/60">STARK INDUSTRIES · 45.96°N 66.64°W</div>
       </motion.div>
 
       {/* Scroll progress */}
