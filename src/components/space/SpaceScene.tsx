@@ -239,7 +239,7 @@ function Ship() {
   );
 }
 
-function ChaseCamera({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
+function ChaseCamera({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group | null> }) {
   const { camera } = useThree();
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const look = useMemo(() => new THREE.Vector3(), []);
