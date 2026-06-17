@@ -13,6 +13,133 @@ export const BIO = {
   currentFocus: ["Pyra AI agents", "Hack Atlantic 2026", "Introhive platform", "UNB CS + Math"],
 };
 
+export const ABOUT_STATS = [
+  { v: "12+", l: "Projects" },
+  { v: "10+", l: "Hackathons" },
+  { v: "4.1", l: "GPA / 4.3" },
+  { v: "25+", l: "Technologies" },
+] as const;
+
+export const ACHIEVEMENTS = [
+  "Base44 Accelerator · Cohort 1 (1 of 33)",
+  "Top 5 in 10+ MLH Hackathons",
+  "National Astronomy Olympiad · Rank 7",
+  "Mais Family Foundation Scholarship",
+  "UNB Scholarship for Academic Excellence",
+] as const;
+
+export const PROJECTS = [
+  {
+    name: "GeneAI",
+    tag: "HackIllinois 2025",
+    desc: "Pharmacogenomics drug safety platform that flags adverse drug-gene interactions using deep learning.",
+    stack: ["PyTorch", "FastAPI", "React", "Healthcare AI"],
+    url: "#",
+  },
+  {
+    name: "Pyra AI",
+    tag: "Base44 Cohort 1",
+    desc: "AI venture selected as 1 of 33 startups for Base44 Accelerator. Building agents that ship work.",
+    stack: ["LLMs", "Next.js", "Postgres", "Agents"],
+    url: "#",
+  },
+  {
+    name: "Hack Atlantic",
+    tag: "Co-Founder",
+    desc: "Atlantic Canada's flagship student hackathon — connecting builders, founders, and industry.",
+    stack: ["React", "Community", "Events"],
+    url: "https://hackatlantic.ca",
+  },
+  {
+    name: "Block Broker",
+    tag: "MLH Hackathon",
+    desc: "Web3 freelancer marketplace using smart contracts to escrow payments trustlessly.",
+    stack: ["React", "Solidity", "Web3"],
+    url: "#",
+  },
+] as const;
+
+export const EXPERIENCE = [
+  {
+    role: "Co-Founder",
+    org: "Hack Atlantic",
+    period: "May 2026 — Present",
+    desc: "Building Atlantic Canada's flagship student hackathon.",
+  },
+  {
+    role: "Associate Software Engineer",
+    org: "Introhive",
+    period: "Jan 2026 — Present",
+    desc: "Co-op engineer shipping production features across the Introhive platform.",
+  },
+  {
+    role: "Founder",
+    org: "Pyra AI",
+    period: "Jan 2026 — Present",
+    desc: "Selected for Base44 Accelerator Cohort 1 (1 of 33 globally).",
+  },
+  {
+    role: "Software Developer",
+    org: "Canadian Institute for Cybersecurity",
+    period: "Sep — Dec 2025",
+    desc: "Research engineering on cybersecurity tooling at UNB.",
+  },
+  {
+    role: "Software Developer Co-op",
+    org: "Irving Oil",
+    period: "Jan — Apr 2025",
+    desc: "Internal tools, automation, and data pipelines for a Fortune 500 energy company.",
+  },
+] as const;
+
+export const SKILLS = {
+  AI: [
+    ["PyTorch", 88],
+    ["LLMs / Agents", 92],
+    ["FastAPI", 85],
+    ["Computer Vision", 75],
+  ],
+  "Full Stack": [
+    ["React / Next.js", 95],
+    ["TypeScript", 92],
+    ["Node.js", 85],
+    ["Tailwind", 95],
+  ],
+  Cloud: [
+    ["AWS", 78],
+    ["Vercel", 90],
+    ["Docker", 82],
+    ["Cloudflare", 80],
+  ],
+  Data: [
+    ["Postgres", 88],
+    ["Supabase", 90],
+    ["Python", 92],
+    ["SQL", 90],
+  ],
+} as const;
+
+export const CONTACT = {
+  email: "ansh.tuli@unb.ca",
+  links: [
+    {
+      href: "https://linkedin.com/in/ansh-tuli-651a60221",
+      label: "LinkedIn",
+      handle: "ansh-tuli",
+    },
+    { href: "https://github.com/Topupchips", label: "GitHub", handle: "Topupchips" },
+    { href: "https://hackatlantic.ca", label: "Hack Atlantic", handle: "hackatlantic.ca" },
+  ],
+} as const;
+
+export const MOBILE_SECTIONS = [
+  { id: "about", label: "About" },
+  { id: "projects", label: "Projects" },
+  { id: "experience", label: "Experience" },
+  { id: "skills", label: "Skills" },
+  { id: "contact", label: "Contact" },
+] as const;
+
 export const ENGRAVINGS: { text: string; x: string; y: string; rotate?: number }[] = [
   { text: "AT · UNB '27", x: "8%", y: "12%", rotate: -8 },
   { text: "PYRA AI", x: "78%", y: "18%", rotate: 12 },

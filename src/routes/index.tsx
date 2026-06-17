@@ -9,6 +9,7 @@ import { HUD } from "@/components/HUD";
 import { PanelLayer } from "@/components/PanelLayer";
 import { Cursor } from "@/components/Cursor";
 import { ShootingGame, ShootingGameLauncher } from "@/components/shooting/ShootingGame";
+import { MobilePortfolio } from "@/components/MobilePortfolio";
 
 const Canvas = lazy(() => import("@react-three/fiber").then((m) => ({ default: m.Canvas })));
 const SpaceScene = lazy(() =>
@@ -42,18 +43,31 @@ export const Route = createFileRoute("/")({
 
 function Mission() {
   const [mounted, setMounted] = useState(false);
-  const { stage, focus, navigateTo, setStage } = useMission();
-  const hydrate = useGame((s) => s.hydrate);
   const isMobile = useIsMobile();
-  const isTouch = useIsTouchDevice();
 
   useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return <main className="h-[100dvh] w-screen bg-black" aria-busy="true" />;
+  }
+
+  if (isMobile) {
+    return <MobilePortfolio />;
+  }
+
+  return <DesktopExperience />;
+}
+
+function DesktopExperience() {
+  const { stage, focus, navigateTo } = useMission();
+  const hydrate = useGame((s) => s.hydrate);
+  const isTouch = useIsTouchDevice();
+
   useEffect(() => hydrate(), [hydrate]);
 
   const pilot = useMission((s) => s.pilot);
   const gameActive = useGame((s) => s.active);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -72,7 +86,6 @@ function Mission() {
     return () => window.removeEventListener("keydown", onKey);
   }, [navigateTo, gameActive]);
 
-  // Scroll to advance through destinations (desktop only)
   useEffect(() => {
     if (stage !== "orbit" || pilot || isTouch) return;
     let acc = 0;
@@ -95,8 +108,6 @@ function Mission() {
     return () => window.removeEventListener("wheel", onWheel);
   }, [stage, focus, navigateTo, pilot, isTouch]);
 
-  const canvasDpr: [number, number] = isMobile ? [1, 1.5] : [1, 2];
-
   return (
     <main className="grain vignette relative h-[100dvh] w-screen overflow-hidden bg-black">
       <a
@@ -107,18 +118,16 @@ function Mission() {
       </a>
 
       <div id="main" className="absolute inset-0">
-        {mounted && (
-          <Suspense fallback={null}>
-            <Canvas
-              dpr={canvasDpr}
-              camera={{ position: [0, 1.5, 9], fov: isMobile ? 60 : 55 }}
-              gl={{ antialias: !isMobile, alpha: false, powerPreference: isMobile ? "low-power" : "high-performance" }}
-            >
-              <SpaceScene />
-              <Effects />
-            </Canvas>
-          </Suspense>
-        )}
+        <Suspense fallback={null}>
+          <Canvas
+            dpr={[1, 2]}
+            camera={{ position: [0, 1.5, 9], fov: 55 }}
+            gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+          >
+            <SpaceScene />
+            <Effects />
+          </Canvas>
+        </Suspense>
       </div>
 
       <AnimatePresence>{stage === "landing" && <Landing key="landing" />}</AnimatePresence>

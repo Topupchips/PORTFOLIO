@@ -1,6 +1,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMission, type Destination } from "@/store/mission";
-import { getPlanetFlavor } from "@/lib/content";
+import {
+  getPlanetFlavor,
+  ACHIEVEMENTS,
+  ABOUT_STATS,
+  PROJECTS,
+  EXPERIENCE,
+  SKILLS,
+  CONTACT,
+} from "@/lib/content";
 import { useGame } from "@/store/game";
 import {
   GraduationCap,
@@ -83,19 +91,8 @@ export function PanelLayer() {
 }
 
 function AboutPanel() {
-  const stats = [
-    { v: "12+", l: "Projects" },
-    { v: "10+", l: "Hackathons" },
-    { v: "4.1", l: "GPA / 4.3" },
-    { v: "25+", l: "Technologies" },
-  ];
-  const achievements = [
-    "Base44 Accelerator · Cohort 1 (1 of 33)",
-    "Top 5 in 10+ MLH Hackathons",
-    "National Astronomy Olympiad · Rank 7",
-    "Mais Family Foundation Scholarship",
-    "UNB Scholarship for Academic Excellence",
-  ];
+  const stats = ABOUT_STATS;
+  const achievements = ACHIEVEMENTS;
   return (
     <div className="grid gap-8 md:grid-cols-5">
       <div className="md:col-span-3 space-y-5">
@@ -146,36 +143,7 @@ function AboutPanel() {
   );
 }
 
-const PROJECTS = [
-  {
-    name: "GeneAI",
-    tag: "HackIllinois 2025",
-    desc: "Pharmacogenomics drug safety platform that flags adverse drug-gene interactions using deep learning.",
-    stack: ["PyTorch", "FastAPI", "React", "Healthcare AI"],
-    url: "#",
-  },
-  {
-    name: "Pyra AI",
-    tag: "Base44 Cohort 1",
-    desc: "AI venture selected as 1 of 33 startups for Base44 Accelerator. Building agents that ship work.",
-    stack: ["LLMs", "Next.js", "Postgres", "Agents"],
-    url: "#",
-  },
-  {
-    name: "Hack Atlantic",
-    tag: "Co-Founder",
-    desc: "Atlantic Canada's flagship student hackathon — connecting builders, founders, and industry.",
-    stack: ["React", "Community", "Events"],
-    url: "https://hackatlantic.ca",
-  },
-  {
-    name: "Block Broker",
-    tag: "MLH Hackathon",
-    desc: "Web3 freelancer marketplace using smart contracts to escrow payments trustlessly.",
-    stack: ["React", "Solidity", "Web3"],
-    url: "#",
-  },
-];
+const PROJECTS_LIST = PROJECTS;
 
 function ProjectsPanel() {
   return (
@@ -184,7 +152,7 @@ function ProjectsPanel() {
         Active Payloads
       </h2>
       <div className="grid gap-4 md:grid-cols-2">
-        {PROJECTS.map((p, i) => (
+        {PROJECTS_LIST.map((p, i) => (
           <motion.a
             key={p.name}
             href={p.url}
@@ -221,38 +189,7 @@ function ProjectsPanel() {
   );
 }
 
-const EXPERIENCE = [
-  {
-    role: "Co-Founder",
-    org: "Hack Atlantic",
-    period: "May 2026 — Present",
-    desc: "Building Atlantic Canada's flagship student hackathon.",
-  },
-  {
-    role: "Associate Software Engineer",
-    org: "Introhive",
-    period: "Jan 2026 — Present",
-    desc: "Co-op engineer shipping production features across the Introhive platform.",
-  },
-  {
-    role: "Founder",
-    org: "Pyra AI",
-    period: "Jan 2026 — Present",
-    desc: "Selected for Base44 Accelerator Cohort 1 (1 of 33 globally).",
-  },
-  {
-    role: "Software Developer",
-    org: "Canadian Institute for Cybersecurity",
-    period: "Sep — Dec 2025",
-    desc: "Research engineering on cybersecurity tooling at UNB.",
-  },
-  {
-    role: "Software Developer Co-op",
-    org: "Irving Oil",
-    period: "Jan — Apr 2025",
-    desc: "Internal tools, automation, and data pipelines for a Fortune 500 energy company.",
-  },
-];
+const EXPERIENCE_LIST = EXPERIENCE;
 
 function ExperiencePanel() {
   return (
@@ -261,7 +198,7 @@ function ExperiencePanel() {
         Mission Log
       </h2>
       <ol className="relative space-y-6 border-l border-cyan-400/30 pl-6">
-        {EXPERIENCE.map((e, i) => (
+        {EXPERIENCE_LIST.map((e, i) => (
           <motion.li
             key={e.org + e.period}
             initial={{ opacity: 0, x: -20 }}
@@ -290,32 +227,7 @@ function ExperiencePanel() {
   );
 }
 
-const SKILLS = {
-  AI: [
-    ["PyTorch", 88],
-    ["LLMs / Agents", 92],
-    ["FastAPI", 85],
-    ["Computer Vision", 75],
-  ],
-  "Full Stack": [
-    ["React / Next.js", 95],
-    ["TypeScript", 92],
-    ["Node.js", 85],
-    ["Tailwind", 95],
-  ],
-  Cloud: [
-    ["AWS", 78],
-    ["Vercel", 90],
-    ["Docker", 82],
-    ["Cloudflare", 80],
-  ],
-  Data: [
-    ["Postgres", 88],
-    ["Supabase", 90],
-    ["Python", 92],
-    ["SQL", 90],
-  ],
-} as const;
+const SKILLS_MATRIX = SKILLS;
 
 function SkillsPanel() {
   return (
@@ -328,7 +240,7 @@ function SkillsPanel() {
         <span className="sm:hidden">Tap a skill to read its signal strength.</span>
       </p>
       <div className="grid gap-6 md:grid-cols-2">
-        {Object.entries(SKILLS).map(([cat, items]) => (
+        {Object.entries(SKILLS_MATRIX).map(([cat, items]) => (
           <div key={cat} className="rounded-xl border border-cyan-400/20 bg-black/30 p-5">
             <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300">
               {cat}
@@ -363,7 +275,7 @@ function SkillsPanel() {
 function ContactPanel() {
   const [copied, setCopied] = useState(false);
   const [sent, setSent] = useState(false);
-  const email = "ansh.tuli@unb.ca";
+  const email = CONTACT.email;
 
   const copy = () => {
     navigator.clipboard.writeText(email);
@@ -408,22 +320,22 @@ function ContactPanel() {
 
         <div className="space-y-2">
           <SocialLink
-            href="https://linkedin.com/in/ansh-tuli-651a60221"
+            href={CONTACT.links[0].href}
             icon={Linkedin}
-            label="LinkedIn"
-            handle="ansh-tuli"
+            label={CONTACT.links[0].label}
+            handle={CONTACT.links[0].handle}
           />
           <SocialLink
-            href="https://github.com/Topupchips"
+            href={CONTACT.links[1].href}
             icon={Github}
-            label="GitHub"
-            handle="Topupchips"
+            label={CONTACT.links[1].label}
+            handle={CONTACT.links[1].handle}
           />
           <SocialLink
-            href="https://hackatlantic.ca"
+            href={CONTACT.links[2].href}
             icon={ExternalLink}
-            label="Hack Atlantic"
-            handle="hackatlantic.ca"
+            label={CONTACT.links[2].label}
+            handle={CONTACT.links[2].handle}
           />
         </div>
 
