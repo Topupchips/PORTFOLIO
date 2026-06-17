@@ -22,10 +22,10 @@ export function ArcReactorMenu() {
   if (stage === "landing") return null;
 
   return (
-    <div className="fixed left-6 top-5 z-50">
+    <div className="fixed left-3 top-3 z-50 safe-top safe-x sm:left-6 sm:top-5">
       <button
         onClick={toggleRadial}
-        className="group relative flex h-10 w-10 items-center justify-center"
+        className="touch-target group relative flex h-11 w-11 items-center justify-center sm:h-10 sm:w-10"
         aria-label="Arc reactor navigation menu"
         aria-expanded={radialOpen}
       >
@@ -73,7 +73,7 @@ export function ArcReactorMenu() {
                     exit={{ opacity: 0, x: 0, y: 0 }}
                     transition={{ delay: i * 0.05, type: "spring", stiffness: 400, damping: 20 }}
                     onClick={() => navigateTo(item.id)}
-                    className="glass-holo border-holo absolute left-5 top-5 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-xl px-3 py-2 font-mono text-[8px] uppercase tracking-[0.2em] text-cyan-200 transition-colors hover:bg-cyan-400/15"
+                    className="glass-holo border-holo touch-target absolute left-5 top-5 flex min-h-[44px] min-w-[44px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 font-mono text-[8px] uppercase tracking-[0.2em] text-cyan-200 transition-colors hover:bg-cyan-400/15"
                     style={{ marginLeft: x, marginTop: y }}
                     aria-label={item.label}
                   >

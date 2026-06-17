@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useMission, DESTINATIONS } from "@/store/mission";
 import { useGame } from "@/store/game";
+import { useIsMobile, useIsTouchDevice } from "@/hooks/use-device";
 import { Landing } from "@/components/Landing";
 import { HUD } from "@/components/HUD";
 import { PanelLayer } from "@/components/PanelLayer";
@@ -43,6 +44,8 @@ function Mission() {
   const [mounted, setMounted] = useState(false);
   const { stage, focus, navigateTo, setStage } = useMission();
   const hydrate = useGame((s) => s.hydrate);
+  const isMobile = useIsMobile();
+  const isTouch = useIsTouchDevice();
 
   useEffect(() => setMounted(true), []);
   useEffect(() => hydrate(), [hydrate]);
@@ -69,9 +72,9 @@ function Mission() {
     return () => window.removeEventListener("keydown", onKey);
   }, [navigateTo, gameActive]);
 
-  // Scroll to advance through destinations
+  // Scroll to advance through destinations (desktop only)
   useEffect(() => {
-    if (stage !== "orbit" || pilot) return;
+    if (stage !== "orbit" || pilot || isTouch) return;
     let acc = 0;
     let cooldown = false;
     const order = DESTINATIONS.map((d) => d.id);
@@ -90,10 +93,12 @@ function Mission() {
     };
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
-  }, [stage, focus, navigateTo, pilot]);
+  }, [stage, focus, navigateTo, pilot, isTouch]);
+
+  const canvasDpr: [number, number] = isMobile ? [1, 1.5] : [1, 2];
 
   return (
-    <main className="grain vignette relative h-screen w-screen overflow-hidden bg-black">
+    <main className="grain vignette relative h-[100dvh] w-screen overflow-hidden bg-black">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:rounded focus:bg-cyan-400 focus:px-3 focus:py-1 focus:text-black"
@@ -105,9 +110,9 @@ function Mission() {
         {mounted && (
           <Suspense fallback={null}>
             <Canvas
-              dpr={[1, 2]}
-              camera={{ position: [0, 1.5, 9], fov: 55 }}
-              gl={{ antialias: true, alpha: false }}
+              dpr={canvasDpr}
+              camera={{ position: [0, 1.5, 9], fov: isMobile ? 60 : 55 }}
+              gl={{ antialias: !isMobile, alpha: false, powerPreference: isMobile ? "low-power" : "high-performance" }}
             >
               <SpaceScene />
               <Effects />
@@ -122,7 +127,7 @@ function Mission() {
       <PanelLayer />
       <ShootingGameLauncher />
       <ShootingGame />
-      <Cursor />
+      {!isTouch && <Cursor />}
     </main>
   );
 }

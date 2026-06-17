@@ -74,6 +74,7 @@
   }
   body {
     cursor: none;
+    -webkit-tap-highlight-color: transparent;
   }
   h1,
   h2,
@@ -183,6 +184,30 @@
   body {
     cursor: auto;
   }
+}
+
+/* Safe-area helpers for notched phones */
+@utility safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility safe-x {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+@utility touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Virtual joystick + fire controls */
+.touch-control-zone {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Iron Man arc-reactor pulse */

@@ -3,7 +3,114 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMission } from "@/store/mission";
 import { useGame } from "@/store/game";
 import { FLAVOR_UNLOCKS } from "@/lib/content";
+import { useIsTouchDevice } from "@/hooks/use-device";
 import { Crosshair, X } from "lucide-react";
+
+type TouchInput = {
+  dx: number;
+  dy: number;
+  firing: boolean;
+};
+
+function GameTouchControls({
+  inputRef,
+}: {
+  inputRef: React.MutableRefObject<TouchInput>;
+}) {
+  const joystickRef = useRef<HTMLDivElement>(null);
+  const knobRef = useRef<HTMLDivElement>(null);
+  const activeTouchRef = useRef<number | null>(null);
+  const centerRef = useRef({ x: 0, y: 0 });
+  const maxRadius = 48;
+
+  const resetKnob = () => {
+    if (knobRef.current) {
+      knobRef.current.style.transform = "translate(-50%, -50%)";
+    }
+    inputRef.current.dx = 0;
+    inputRef.current.dy = 0;
+  };
+
+  const handleJoystickStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (activeTouchRef.current !== null) return;
+    const touch = e.changedTouches[0];
+    activeTouchRef.current = touch.identifier;
+    const rect = joystickRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    centerRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  };
+
+  const handleJoystickMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = Array.from(e.touches).find((t) => t.identifier === activeTouchRef.current);
+    if (!touch) return;
+
+    const dx = touch.clientX - centerRef.current.x;
+    const dy = touch.clientY - centerRef.current.y;
+    const dist = Math.hypot(dx, dy);
+    const clamped = Math.min(dist, maxRadius);
+    const angle = Math.atan2(dy, dx);
+    const nx = (Math.cos(angle) * clamped) / maxRadius;
+    const ny = (Math.sin(angle) * clamped) / maxRadius;
+
+    inputRef.current.dx = nx;
+    inputRef.current.dy = ny;
+
+    if (knobRef.current) {
+      const px = Math.cos(angle) * clamped;
+      const py = Math.sin(angle) * clamped;
+      knobRef.current.style.transform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px))`;
+    }
+  };
+
+  const handleJoystickEnd = (e: React.TouchEvent) => {
+    const touch = [...e.changedTouches].find((t) => t.identifier === activeTouchRef.current);
+    if (!touch) return;
+    activeTouchRef.current = null;
+    resetKnob();
+  };
+
+  const setFiring = (v: boolean) => {
+    inputRef.current.firing = v;
+  };
+
+  return (
+    <>
+      <div
+        ref={joystickRef}
+        className="touch-control-zone pointer-events-auto absolute bottom-24 left-4 z-20 h-28 w-28 rounded-full border border-cyan-400/30 bg-cyan-400/5 safe-bottom sm:bottom-20 sm:left-6 sm:h-32 sm:w-32"
+        onTouchStart={handleJoystickStart}
+        onTouchMove={handleJoystickMove}
+        onTouchEnd={handleJoystickEnd}
+        onTouchCancel={handleJoystickEnd}
+        aria-label="Movement joystick"
+      >
+        <div
+          ref={knobRef}
+          className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/50 bg-cyan-400/25 shadow-[0_0_16px_rgba(34,211,238,0.4)]"
+        />
+      </div>
+
+      <button
+        type="button"
+        className="touch-control-zone touch-target pointer-events-auto absolute bottom-24 right-4 z-20 flex h-16 w-16 items-center justify-center rounded-full border border-amber-300/40 bg-amber-400/15 font-mono text-[9px] uppercase tracking-wider text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.25)] safe-bottom active:bg-amber-400/30 sm:bottom-20 sm:right-6 sm:h-[4.5rem] sm:w-[4.5rem]"
+        onTouchStart={(e) => {
+          e.preventDefault();
+          setFiring(true);
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          setFiring(false);
+        }}
+        onTouchCancel={() => setFiring(false)}
+        aria-label="Fire weapons"
+      >
+        Fire
+      </button>
+    </>
+  );
+}
 
 type Meteor = {
   id: number;
@@ -161,10 +268,12 @@ export function ShootingGame() {
     addScore,
     hydrate,
   } = useGame();
+  const isTouch = useIsTouchDevice();
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [combo, setCombo] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const touchInputRef = useRef<TouchInput>({ dx: 0, dy: 0, firing: false });
 
   const comboRef = useRef(0);
   const addScoreRef = useRef(addScore);
@@ -205,6 +314,7 @@ export function ShootingGame() {
 
     const keys = new Set<string>();
     let shooting = false;
+    const maxMeteors = isTouch ? 18 : MAX_METEORS;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -320,14 +430,20 @@ export function ShootingGame() {
       if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) ship.y -= SHIP_SPEED * dt;
       if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) ship.y += SHIP_SPEED * dt;
 
+      const touch = touchInputRef.current;
+      if (touch.dx !== 0 || touch.dy !== 0) {
+        ship.x += touch.dx * SHIP_SPEED * dt;
+        ship.y += touch.dy * SHIP_SPEED * dt;
+      }
+
       ship.x = Math.max(SHIP_WIDTH / 2 + 8, Math.min(w - SHIP_WIDTH / 2 - 8, ship.x));
       ship.y = Math.max(h * 0.35, Math.min(h - 60, ship.y));
 
-      if (shooting || keys.has(" ")) fireProjectile(now);
+      if (shooting || keys.has(" ") || touch.firing) fireProjectile(now);
 
       if (now - lastSpawn >= SPAWN_INTERVAL) {
         lastSpawn = now;
-        if (meteors.length < MAX_METEORS) spawnMeteor();
+        if (meteors.length < maxMeteors) spawnMeteor();
       }
 
       for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -447,6 +563,8 @@ export function ShootingGame() {
     lastSpawn = lastFrame;
     animId = requestAnimationFrame(tick);
 
+    touchInputRef.current = { dx: 0, dy: 0, firing: false };
+
     return () => {
       running = false;
       cancelAnimationFrame(animId);
@@ -457,7 +575,7 @@ export function ShootingGame() {
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("resize", onResize);
     };
-  }, [active, resetCombo]);
+  }, [active, resetCombo, isTouch]);
 
   if (!active) return null;
 
@@ -468,28 +586,30 @@ export function ShootingGame() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[60]"
+        className="fixed inset-0 z-[60] touch-control-zone"
       >
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
 
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full touch-none"
           aria-label="Defend Orbit space shooter"
         />
 
+        {isTouch && <GameTouchControls inputRef={touchInputRef} />}
+
         {/* HUD */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-6 font-mono text-[10px] uppercase tracking-[0.3em]">
-          <div className="glass-holo rounded-xl px-4 py-3 text-cyan-300">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 safe-top safe-x p-3 font-mono text-[9px] uppercase tracking-[0.2em] sm:p-6 sm:text-[10px] sm:tracking-[0.3em]">
+          <div className="glass-holo min-w-0 rounded-xl px-3 py-2 text-cyan-300 sm:px-4 sm:py-3">
             <div className="text-white/50">Score</div>
-            <div className="text-2xl font-display text-holo">{sessionScore}</div>
+            <div className="text-xl font-display text-holo sm:text-2xl">{sessionScore}</div>
             {combo > 1 && <div className="text-amber-300">Combo ×{combo}</div>}
           </div>
-          <div className="glass-holo rounded-xl px-4 py-3 text-center text-cyan-300">
+          <div className="glass-holo rounded-xl px-3 py-2 text-center text-cyan-300 sm:px-4 sm:py-3">
             <div className="text-white/50">Time</div>
-            <div className="text-2xl font-display">{timeLeft}s</div>
+            <div className="text-xl font-display sm:text-2xl">{timeLeft}s</div>
           </div>
-          <div className="glass-holo rounded-xl px-4 py-3 text-right text-cyan-300">
+          <div className="glass-holo hidden min-w-0 rounded-xl px-3 py-2 text-right text-cyan-300 min-[380px]:block sm:px-4 sm:py-3">
             <div className="text-white/50">High / Total</div>
             <div className="text-sm">
               {highScore} / {totalScore}
@@ -503,15 +623,18 @@ export function ShootingGame() {
             e.stopPropagation();
             endGame();
           }}
-          className="glass-holo border-holo absolute right-6 top-24 z-20 flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300 hover:bg-cyan-400/10"
+          className="glass-holo border-holo touch-target absolute right-3 top-20 z-20 flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-300 hover:bg-cyan-400/10 safe-top safe-x sm:right-6 sm:top-24"
         >
-          <X className="h-3 w-3" /> Abort
+          <X className="h-4 w-4" /> Abort
         </button>
 
-        <div className="pointer-events-none absolute bottom-8 left-1/2 z-10 max-w-xl -translate-x-1/2 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-200/70">
-          <Crosshair className="mr-2 inline h-3 w-3" />
-          WASD / Arrows move · Space or hold click to fire · Esc to exit · Score unlocks planet intel
-        </div>
+        {!isTouch && (
+          <div className="pointer-events-none absolute bottom-8 left-1/2 z-10 hidden max-w-xl -translate-x-1/2 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-200/70 md:block">
+            <Crosshair className="mr-2 inline h-3 w-3" />
+            WASD / Arrows move · Space or hold click to fire · Esc to exit · Score unlocks planet
+            intel
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
@@ -528,7 +651,7 @@ export function ShootingGameLauncher() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       onClick={startGame}
-      className="glass-holo border-holo fixed bottom-6 right-36 z-40 flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.3em] text-amber-200 hover:bg-amber-400/10"
+      className="glass-holo border-holo touch-target fixed z-40 flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.3em] text-amber-200 hover:bg-amber-400/10 safe-bottom safe-x bottom-[8.5rem] right-4 md:bottom-6 md:right-36"
     >
       <Crosshair className="h-3 w-3" />
       Defend Orbit

@@ -41,26 +41,26 @@ export function PanelLayer() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
-          className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center p-4 md:p-8"
+          className="pointer-events-none fixed inset-0 z-30 flex items-end justify-center safe-x p-2 pb-[4.5rem] md:items-center md:p-4 md:pb-8 lg:p-8"
         >
-          <div className="pointer-events-auto glass-holo border-holo relative flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl">
+          <div className="pointer-events-auto glass-holo border-holo relative flex max-h-[min(85dvh,100%)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl md:max-h-[85vh]">
             {/* Scanline */}
             <div className="absolute inset-0 overflow-hidden opacity-20">
               <div className="scanline absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
             </div>
 
-            <header className="flex items-center justify-between border-b border-cyan-400/20 px-6 py-4 font-mono text-[10px] uppercase tracking-[0.3em]">
+            <header className="flex flex-col gap-2 border-b border-cyan-400/20 px-4 py-3 font-mono text-[9px] uppercase tracking-[0.25em] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:text-[10px] sm:tracking-[0.3em]">
               <div className="flex items-center gap-3 text-cyan-300">
-                <span className="pulse-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                {PANELS[focus].title}
+                <span className="pulse-ring h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="truncate">{PANELS[focus].title}</span>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-white/40">{PANELS[focus].subtitle}</div>
                 {flavor && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-1 max-w-xs text-[9px] normal-case tracking-normal text-amber-300/70"
+                    className="mt-1 max-w-xs text-[8px] normal-case tracking-normal text-amber-300/70 sm:text-[9px]"
                   >
                     🔓 {flavor}
                   </motion.div>
@@ -68,7 +68,7 @@ export function PanelLayer() {
               </div>
             </header>
 
-            <div className="overflow-y-auto p-6 md:p-10">
+            <div className="overflow-y-auto overscroll-contain p-4 sm:p-6 md:p-10">
               {focus === "about" && <AboutPanel />}
               {focus === "projects" && <ProjectsPanel />}
               {focus === "experience" && <ExperiencePanel />}
@@ -99,7 +99,9 @@ function AboutPanel() {
   return (
     <div className="grid gap-8 md:grid-cols-5">
       <div className="md:col-span-3 space-y-5">
-        <h2 className="font-display text-4xl font-bold text-holo md:text-5xl">Operator Profile</h2>
+        <h2 className="font-display text-2xl font-bold text-holo sm:text-3xl md:text-4xl lg:text-5xl">
+          Operator Profile
+        </h2>
         <p className="text-white/70 leading-relaxed">
           I got pulled into tech the way most kids my age did — watching Iron Man build something
           impossible in a cave. Now I'm a CS student at UNB, founder of{" "}
@@ -178,7 +180,7 @@ const PROJECTS = [
 function ProjectsPanel() {
   return (
     <div>
-      <h2 className="mb-6 font-display text-4xl font-bold text-holo md:text-5xl">
+      <h2 className="mb-4 font-display text-2xl font-bold text-holo sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl">
         Active Payloads
       </h2>
       <div className="grid gap-4 md:grid-cols-2">
@@ -255,7 +257,9 @@ const EXPERIENCE = [
 function ExperiencePanel() {
   return (
     <div>
-      <h2 className="mb-8 font-display text-4xl font-bold text-holo md:text-5xl">Mission Log</h2>
+      <h2 className="mb-6 font-display text-2xl font-bold text-holo sm:mb-8 sm:text-3xl md:text-4xl lg:text-5xl">
+        Mission Log
+      </h2>
       <ol className="relative space-y-6 border-l border-cyan-400/30 pl-6">
         {EXPERIENCE.map((e, i) => (
           <motion.li
@@ -316,10 +320,13 @@ const SKILLS = {
 function SkillsPanel() {
   return (
     <div>
-      <h2 className="mb-2 font-display text-4xl font-bold text-holo md:text-5xl">
+      <h2 className="mb-2 font-display text-2xl font-bold text-holo sm:text-3xl md:text-4xl lg:text-5xl">
         Skill Constellation
       </h2>
-      <p className="mb-6 text-sm text-white/50">Hover a star to read its signal strength.</p>
+      <p className="mb-4 text-sm text-white/50 sm:mb-6">
+        <span className="hidden sm:inline">Hover a star to read its signal strength.</span>
+        <span className="sm:hidden">Tap a skill to read its signal strength.</span>
+      </p>
       <div className="grid gap-6 md:grid-cols-2">
         {Object.entries(SKILLS).map(([cat, items]) => (
           <div key={cat} className="rounded-xl border border-cyan-400/20 bg-black/30 p-5">
@@ -331,7 +338,7 @@ function SkillsPanel() {
                 <div key={name} className="group">
                   <div className="mb-1 flex justify-between text-xs">
                     <span className="text-white/80">{name}</span>
-                    <span className="font-mono text-cyan-300/70 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="font-mono text-cyan-300/70 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                       {val}%
                     </span>
                   </div>
@@ -377,14 +384,16 @@ function ContactPanel() {
   return (
     <div className="grid gap-8 md:grid-cols-2">
       <div>
-        <h2 className="mb-2 font-display text-4xl font-bold text-holo md:text-5xl">Open Comms</h2>
+        <h2 className="mb-2 font-display text-2xl font-bold text-holo sm:text-3xl md:text-4xl lg:text-5xl">
+          Open Comms
+        </h2>
         <p className="mb-6 text-sm text-white/60">
           Transmission channel active. Send a signal — I read everything.
         </p>
 
         <button
           onClick={copy}
-          className="glass-holo mb-3 flex w-full items-center justify-between rounded-lg px-4 py-3 text-left transition-colors hover:bg-cyan-400/10"
+          className="glass-holo mb-3 flex w-full touch-target items-center justify-between rounded-lg px-4 py-3 text-left transition-colors hover:bg-cyan-400/10"
         >
           <div className="flex items-center gap-3">
             <Mail className="h-4 w-4 text-cyan-300" />
@@ -503,7 +512,7 @@ function SocialLink({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="glass-holo flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-cyan-400/10"
+      className="glass-holo touch-target flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-cyan-400/10"
     >
       <div className="flex items-center gap-3">
         <Icon className="h-4 w-4 text-cyan-300" />

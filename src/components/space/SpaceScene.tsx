@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Stars, Float, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useMission, type Destination } from "@/store/mission";
+import { useLowPowerGraphics } from "@/hooks/use-device";
 
 const PLANETS: {
   id: Destination;
@@ -56,7 +57,7 @@ const PLANETS: {
   },
 ];
 
-function Planet({ p }: { p: (typeof PLANETS)[number] }) {
+function Planet({ p, segments }: { p: (typeof PLANETS)[number]; segments: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const focus = useMission((s) => s.focus);
   const navigateTo = useMission((s) => s.navigateTo);
@@ -82,7 +83,7 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
           }}
           scale={isFocused ? 1.4 : 1}
         >
-          <sphereGeometry args={[p.size, 64, 64]} />
+          <sphereGeometry args={[p.size, segments, segments]} />
           <meshStandardMaterial
             color={p.color}
             emissive={p.emissive}
@@ -93,12 +94,12 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
         </mesh>
         {p.ring && (
           <mesh rotation={[Math.PI / 2.3, 0, 0]}>
-            <ringGeometry args={[p.size * 1.4, p.size * 2.1, 96]} />
+            <ringGeometry args={[p.size * 1.4, p.size * 2.1, Math.max(32, segments)]} />
             <meshBasicMaterial color="#fbbf24" side={THREE.DoubleSide} transparent opacity={0.5} />
           </mesh>
         )}
         <mesh>
-          <sphereGeometry args={[p.size * 1.3, 32, 32]} />
+          <sphereGeometry args={[p.size * 1.3, Math.max(16, segments / 2), Math.max(16, segments / 2)]} />
           <meshBasicMaterial color={p.color} transparent opacity={0.06} />
         </mesh>
         <Html
@@ -107,7 +108,7 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
           position={[0, p.size + 0.6, 0]}
           style={{ pointerEvents: "none" }}
         >
-          <div className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">
+          <div className="whitespace-nowrap font-display text-[8px] uppercase tracking-[0.2em] text-cyan-300/80 sm:text-[10px] sm:tracking-[0.3em]">
             {p.label}
           </div>
         </Html>
@@ -116,7 +117,7 @@ function Planet({ p }: { p: (typeof PLANETS)[number] }) {
   );
 }
 
-function Sun() {
+function Sun({ segments }: { segments: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const corona = useRef<THREE.Mesh>(null);
   const navigateTo = useMission((s) => s.navigateTo);
@@ -136,7 +137,7 @@ function Sun() {
           navigateTo(null);
         }}
       >
-        <sphereGeometry args={[1.4, 64, 64]} />
+        <sphereGeometry args={[1.4, segments, segments]} />
         <meshStandardMaterial
           color="#fde047"
           emissive="#f59e0b"
@@ -145,16 +146,16 @@ function Sun() {
         />
       </mesh>
       <mesh ref={corona}>
-        <sphereGeometry args={[1.7, 32, 32]} />
+        <sphereGeometry args={[1.7, Math.max(16, segments / 2), Math.max(16, segments / 2)]} />
         <meshBasicMaterial color="#fbbf24" transparent opacity={0.18} />
       </mesh>
       <mesh>
-        <sphereGeometry args={[2.3, 32, 32]} />
+        <sphereGeometry args={[2.3, Math.max(16, segments / 2), Math.max(16, segments / 2)]} />
         <meshBasicMaterial color="#f97316" transparent opacity={0.08} />
       </mesh>
       <pointLight intensity={3} color="#fbbf24" distance={40} decay={1.4} />
       <Html center distanceFactor={10} position={[0, 2.1, 0]} style={{ pointerEvents: "none" }}>
-        <div className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.3em] text-amber-200/80">
+        <div className="whitespace-nowrap font-display text-[8px] uppercase tracking-[0.2em] text-amber-200/80 sm:text-[10px] sm:tracking-[0.3em]">
           Sol / Mission Control
         </div>
       </Html>
@@ -415,6 +416,12 @@ function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
 }
 
 export function SpaceScene() {
+  const lowPower = useLowPowerGraphics();
+  const segments = lowPower ? 32 : 64;
+  const starCount = lowPower ? 4500 : 14000;
+  const starCountNear = lowPower ? 900 : 3000;
+  const nebulaSegments = lowPower ? 16 : 32;
+
   return (
     <>
       <color attach="background" args={["#000003"]} />
@@ -423,21 +430,21 @@ export function SpaceScene() {
       <pointLight position={[10, 10, 10]} intensity={0.8} color="#a78bfa" />
       <pointLight position={[-10, -5, -5]} intensity={0.5} color="#22d3ee" />
 
-      <Stars radius={120} depth={60} count={14000} factor={4} saturation={0.4} fade speed={0.5} />
-      <Stars radius={50} depth={30} count={3000} factor={2} saturation={0} fade speed={1} />
+      <Stars radius={120} depth={60} count={starCount} factor={4} saturation={0.4} fade speed={0.5} />
+      <Stars radius={50} depth={30} count={starCountNear} factor={2} saturation={0} fade speed={1} />
 
       <mesh position={[-15, 5, -25]}>
-        <sphereGeometry args={[10, 32, 32]} />
+        <sphereGeometry args={[10, nebulaSegments, nebulaSegments]} />
         <meshBasicMaterial color="#7c3aed" transparent opacity={0.04} />
       </mesh>
       <mesh position={[18, -8, -30]}>
-        <sphereGeometry args={[12, 32, 32]} />
+        <sphereGeometry args={[12, nebulaSegments, nebulaSegments]} />
         <meshBasicMaterial color="#0891b2" transparent opacity={0.05} />
       </mesh>
 
-      <Sun />
+      <Sun segments={segments} />
       {PLANETS.map((p) => (
-        <Planet key={p.id} p={p} />
+        <Planet key={p.id} p={p} segments={segments} />
       ))}
 
       <PilotControl />

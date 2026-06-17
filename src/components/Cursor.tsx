@@ -1,14 +1,19 @@
 import { useEffect, useRef } from "react";
+import { useIsTouchDevice } from "@/hooks/use-device";
 
 /**
  * Iron Man-flavored "shooting star" cursor.
  * Canvas-based trail: gold-to-red sparks streaming behind a cyan arc-reactor core.
+ * Disabled on touch devices.
  */
 export function Cursor() {
+  const isTouch = useIsTouchDevice();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouse = useRef({ x: -100, y: -100, px: -100, py: -100 });
 
   useEffect(() => {
+    if (isTouch) return;
+
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     let raf = 0;
@@ -47,11 +52,9 @@ export function Cursor() {
           life: 0,
           max: 28 + Math.random() * 22,
           size: 1.4 + Math.random() * 2.2,
-          // Iron Man palette: gold (45°) → red (10°) with rare cyan (190°)
           hue: Math.random() < 0.12 ? 190 : 35 + Math.random() * 20,
         });
       }
-      // cap pool
       if (particles.length > 400) particles.splice(0, particles.length - 400);
     };
     window.addEventListener("mousemove", onMove);
@@ -84,7 +87,6 @@ export function Cursor() {
         ctx.fill();
       }
 
-      // Arc-reactor core
       const { x, y } = mouse.current;
       const core = ctx.createRadialGradient(x, y, 0, x, y, 22);
       core.addColorStop(0, "rgba(220, 250, 255, 0.95)");
@@ -104,7 +106,9 @@ export function Cursor() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);
     };
-  }, []);
+  }, [isTouch]);
+
+  if (isTouch) return null;
 
   return (
     <canvas

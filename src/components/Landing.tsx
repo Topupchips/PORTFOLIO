@@ -48,7 +48,7 @@ export function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-6 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.5em] text-cyan-300/80"
+          className="mb-4 flex flex-wrap items-center justify-center gap-2 px-4 font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-300/80 sm:mb-6 sm:gap-3 sm:text-[10px] sm:tracking-[0.5em]"
         >
           <span className="arc-reactor h-2.5 w-2.5 rounded-full bg-cyan-300" />
           J.A.R.V.I.S. // Booting Mark VII
@@ -56,7 +56,7 @@ export function Landing() {
         </motion.div>
 
         <h1
-          className="font-display text-6xl font-black uppercase tracking-tight text-holo sm:text-8xl md:text-[10rem] md:leading-[0.95]"
+          className="font-display text-4xl font-black uppercase tracking-tight text-holo sm:text-6xl md:text-8xl lg:text-[10rem] lg:leading-[0.95] px-4"
           style={{ filter: "drop-shadow(0 0 60px rgba(34,211,238,0.25)) drop-shadow(0 0 90px rgba(220,38,38,0.18))" }}
         >
           Ansh Tuli
@@ -88,7 +88,7 @@ export function Landing() {
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setStage("orbit")}
-          className="glass-holo border-holo group mt-12 flex items-center gap-3 rounded-full px-8 py-4 font-mono text-xs uppercase tracking-[0.4em] text-cyan-200 transition-all hover:bg-cyan-400/10"
+          className="glass-holo border-holo group touch-target mt-8 flex items-center gap-3 rounded-full px-6 py-3.5 font-mono text-[10px] uppercase tracking-[0.3em] text-cyan-200 transition-all hover:bg-cyan-400/10 sm:mt-12 sm:px-8 sm:py-4 sm:text-xs sm:tracking-[0.4em]"
         >
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           Enter Mission
@@ -98,7 +98,7 @@ export function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.2 }}
-          className="mt-16 font-mono text-[9px] uppercase tracking-[0.3em] text-white/30"
+          className="mt-10 px-4 text-center font-mono text-[8px] uppercase tracking-[0.2em] text-white/30 sm:mt-16 sm:text-[9px] sm:tracking-[0.3em]"
         >
           Coordinates 45.96°N · 66.64°W · Fredericton, NB
         </motion.div>

@@ -43,9 +43,9 @@ export function TransitionNarration() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="pointer-events-none fixed bottom-32 left-1/2 z-50 -translate-x-1/2 text-center"
+          className="pointer-events-none fixed bottom-40 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 px-3 text-center safe-bottom md:bottom-32"
         >
-          <div className="glass-holo border-holo rounded-full px-8 py-3 font-mono text-[11px] uppercase tracking-[0.35em] text-cyan-200">
+          <div className="glass-holo border-holo rounded-full px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-200 sm:px-8 sm:py-3 sm:text-[11px] sm:tracking-[0.35em]">
             <span className="mr-3 text-cyan-400/60">J.A.R.V.I.S.</span>
             <AnimatePresence mode="wait">
               <motion.span

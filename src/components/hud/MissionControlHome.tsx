@@ -22,15 +22,17 @@ export function MissionControlHome() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 40 }}
           transition={{ duration: 0.7, ease: [0.65, 0, 0.35, 1] }}
-          className="pointer-events-none fixed right-6 top-1/2 z-30 w-full max-w-md -translate-y-1/2 p-4 md:right-10"
+          className="pointer-events-none fixed z-30 w-full p-3 safe-x safe-bottom max-md:bottom-[4.5rem] max-md:left-0 max-md:right-0 max-md:top-auto max-md:max-w-none max-md:translate-y-0 md:right-10 md:top-1/2 md:max-w-md md:-translate-y-1/2 md:p-4"
         >
-          <div className="glass-holo border-holo pointer-events-auto rounded-2xl p-6 md:p-8">
+          <div className="glass-holo border-holo pointer-events-auto max-h-[50vh] overflow-y-auto rounded-2xl p-4 sm:p-6 md:max-h-none md:p-8">
             <div className="mb-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.4em] text-cyan-300/80">
               <span className="arc-reactor h-2 w-2 rounded-full bg-cyan-300" />
               Mission Control · Sol
             </div>
 
-            <h2 className="font-display text-3xl font-bold text-holo md:text-4xl">Ansh Tuli</h2>
+            <h2 className="font-display text-2xl font-bold text-holo sm:text-3xl md:text-4xl">
+              Ansh Tuli
+            </h2>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.3em] text-amber-300/70">
               {BIO.tagline}
             </p>
