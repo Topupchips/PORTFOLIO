@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Stars, Float, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -159,85 +159,7 @@ function useKeyboard() {
   return keys;
 }
 
-function Ship() {
-  const group = useRef<THREE.Group>(null);
-  const velocity = useRef(new THREE.Vector3());
-  const keys = useKeyboard();
-  const setFocus = useMission((s) => s.setFocus);
-  const focus = useMission((s) => s.focus);
-  const focusRef = useRef(focus);
-  useEffect(() => { focusRef.current = focus; }, [focus]);
-
-  useFrame((_, dt) => {
-    if (!group.current) return;
-    const k = keys.current;
-    // Yaw with left/right, pitch with up/down keys via forward axis
-    const yawSpeed = 1.2 * dt;
-    if (k.left) group.current.rotation.y += yawSpeed;
-    if (k.right) group.current.rotation.y -= yawSpeed;
-    if (k.up) group.current.rotation.x -= yawSpeed * 0.6;
-    if (k.down) group.current.rotation.x += yawSpeed * 0.6;
-    group.current.rotation.x = THREE.MathUtils.clamp(group.current.rotation.x, -0.8, 0.8);
-
-    // Thrust along local -Z (forward)
-    const dir = new THREE.Vector3(0, 0, -1).applyEuler(group.current.rotation);
-    const thrust = (k.forward ? 1 : 0) - (k.back ? 0.6 : 0);
-    const speed = (k.boost ? 18 : 9) * thrust * dt;
-    velocity.current.addScaledVector(dir, speed);
-    velocity.current.multiplyScalar(0.94); // damping
-    group.current.position.addScaledVector(velocity.current, dt * 4);
-
-    // Soft bounds
-    const max = 28;
-    group.current.position.clampScalar(-max, max);
-
-    // Proximity → focus planet
-    let nearest: Destination | null = null;
-    let nearestDist = Infinity;
-    for (const p of PLANETS) {
-      const d = group.current.position.distanceTo(new THREE.Vector3(...p.position));
-      if (d < p.size + 2.2 && d < nearestDist) {
-        nearestDist = d;
-        nearest = p.id;
-      }
-    }
-    if (nearest && focusRef.current !== nearest) setFocus(nearest);
-    else if (!nearest && focusRef.current && focusRef.current !== "home") {
-      // exit zone
-      const focused = PLANETS.find(p => p.id === focusRef.current);
-      if (focused) {
-        const d = group.current.position.distanceTo(new THREE.Vector3(...focused.position));
-        if (d > focused.size + 3.5) setFocus(null);
-      }
-    }
-  });
-
-  return (
-    <group ref={group} position={[0, 0, 6]}>
-      {/* Body */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.18, 0.7, 16]} />
-        <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.25} emissive="#22d3ee" emissiveIntensity={0.25} />
-      </mesh>
-      {/* Wings */}
-      <mesh position={[0, -0.05, 0.1]}>
-        <boxGeometry args={[0.7, 0.04, 0.2]} />
-        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} emissive="#06b6d4" emissiveIntensity={0.4} />
-      </mesh>
-      {/* Cockpit */}
-      <mesh position={[0, 0.06, -0.05]}>
-        <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.2} transparent opacity={0.8} />
-      </mesh>
-      {/* Thruster glow */}
-      <mesh position={[0, 0, 0.4]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshBasicMaterial color="#f0abfc" transparent opacity={0.7} />
-      </mesh>
-      <pointLight position={[0, 0, 0.5]} intensity={1.2} color="#22d3ee" distance={4} />
-    </group>
-  );
-}
+// (Ship implementation lives in ShipWithRef below)
 
 function ChaseCamera({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group | null> }) {
   const { camera } = useThree();
