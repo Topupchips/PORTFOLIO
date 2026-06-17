@@ -132,21 +132,14 @@
 }
 .shooting-star { animation: shoot 3s linear infinite; }
 
-/* Custom cursor */
-.cursor-dot {
-  position: fixed; pointer-events: none; z-index: 10000;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: oklch(0.85 0.16 200);
-  mix-blend-mode: screen;
-  transition: transform 0.08s ease-out;
-}
-.cursor-ring {
-  position: fixed; pointer-events: none; z-index: 10000;
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid oklch(0.85 0.16 200 / 0.6);
-  transition: transform 0.18s ease-out, width 0.2s, height 0.2s;
-}
+/* Cursor handled by canvas trail in Cursor.tsx — hide native cursor only on fine pointers */
 @media (pointer: coarse) {
   body { cursor: auto; }
-  .cursor-dot, .cursor-ring { display: none; }
 }
+
+/* Iron Man arc-reactor pulse */
+@keyframes arc-pulse {
+  0%, 100% { box-shadow: 0 0 12px 2px rgba(34,211,238,0.7), 0 0 30px 6px rgba(250,200,80,0.35); }
+  50% { box-shadow: 0 0 22px 6px rgba(34,211,238,0.95), 0 0 50px 12px rgba(255,80,40,0.4); }
+}
+.arc-reactor { animation: arc-pulse 2.2s ease-in-out infinite; }
