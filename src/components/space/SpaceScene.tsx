@@ -264,23 +264,28 @@ function ShipWithRef({ shipRef }: { shipRef: React.MutableRefObject<THREE.Group 
 
   return (
     <group ref={shipRef} position={[0, 0, 6]}>
+      {/* Hull — Iron Man hot-rod red */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <coneGeometry args={[0.18, 0.7, 16]} />
-        <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.25} emissive="#22d3ee" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#b91c1c" metalness={0.95} roughness={0.2} emissive="#dc2626" emissiveIntensity={0.35} />
       </mesh>
+      {/* Gold wing accents */}
       <mesh position={[0, -0.05, 0.1]}>
         <boxGeometry args={[0.7, 0.04, 0.2]} />
-        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} emissive="#06b6d4" emissiveIntensity={0.5} />
+        <meshStandardMaterial color="#facc15" metalness={1} roughness={0.25} emissive="#f59e0b" emissiveIntensity={0.5} />
       </mesh>
+      {/* Arc-reactor cockpit */}
       <mesh position={[0, 0.06, -0.05]}>
-        <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} transparent opacity={0.85} />
+        <sphereGeometry args={[0.11, 16, 16]} />
+        <meshStandardMaterial color="#a5f3fc" emissive="#22d3ee" emissiveIntensity={1.8} transparent opacity={0.9} />
       </mesh>
-      <mesh position={[0, 0, 0.4]}>
-        <sphereGeometry args={[0.14, 16, 16]} />
-        <meshBasicMaterial color="#f0abfc" transparent opacity={0.75} />
+      {/* Repulsor thrust */}
+      <mesh position={[0, 0, 0.42]}>
+        <sphereGeometry args={[0.16, 16, 16]} />
+        <meshBasicMaterial color="#fde68a" transparent opacity={0.85} />
       </mesh>
-      <pointLight position={[0, 0, 0.5]} intensity={1.4} color="#22d3ee" distance={5} />
+      <pointLight position={[0, 0, 0.55]} intensity={1.6} color="#fbbf24" distance={5} />
+      <pointLight position={[0, 0.06, -0.05]} intensity={0.8} color="#22d3ee" distance={2} />
     </group>
   );
 }
